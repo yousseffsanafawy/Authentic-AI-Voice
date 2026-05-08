@@ -8,6 +8,7 @@ from app.dependencies import get_current_user
 from app.models.user import User
 from app.models.document import Document
 from app.schemas.document import DocumentCreate, DocumentUpdate, DocumentOut, DocumentDetail
+from app.services.document_service import detect_flags
 
 router = APIRouter()
 
@@ -62,8 +63,14 @@ async def update_document(
     db: AsyncSession = Depends(get_db),
 ):
     doc = await _get_owned_doc(doc_id, user.id, db)
-    for field, value in body.model_dump(exclude_none=True).items():
+    update_data = body.model_dump(exclude_none=True)
+    for field, value in update_data.items():
         setattr(doc, field, value)
+    # Auto-detect table/footnote flags from Tiptap JSON
+    if "content" in update_data:
+        flags = detect_flags(update_data["content"])
+        doc.has_tables = flags["has_tables"]
+        doc.has_footnotes = flags["has_footnotes"]
     doc.current_version += 1
     await db.commit()
     await db.refresh(doc)

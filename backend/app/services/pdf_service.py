@@ -1,7 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from weasyprint import HTML
 
 from app.models.document import Document
 
@@ -44,6 +43,17 @@ class PDFService:
   {footnote_section}
 </body>
 </html>"""
+        try:
+            from weasyprint import HTML
+        except OSError as e:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "PDF export requires GTK3. "
+                    "Download from https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases "
+                    f"Error: {e}"
+                ),
+            )
         return HTML(string=full_html).write_pdf()
 
     async def _get_document(self, document_id: str, user_id: str) -> Document:
