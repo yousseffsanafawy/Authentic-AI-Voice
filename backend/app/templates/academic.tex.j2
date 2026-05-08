@@ -1,0 +1,32 @@
+\documentclass[{{ font_size }},{{ paper_size }}]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage[normalem]{ulem}
+\usepackage{booktabs}
+
+\geometry{margin=1in}
+
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=cyan}
+
+\lstset{basicstyle=\ttfamily\footnotesize, breaklines=true, frame=single, numbers=left}
+
+\title{ {{- title -}} }
+\date{\today}
+
+\begin{document}
+\maketitle
+
+{% if include_toc %}\tableofcontents\newpage{% endif %}
+
+{{ body }}
+
+\end{document}

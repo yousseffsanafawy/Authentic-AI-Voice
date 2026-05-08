@@ -1,0 +1,35 @@
+# ============================================================
+# Authentic AI Voice — Python Dependencies
+# ============================================================
+
+# --- Web Framework ---
+fastapi==0.110.3
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9
+
+# --- Database ---
+sqlalchemy[asyncio]==2.0.30
+asyncpg==0.29.0          # async driver (runtime)
+psycopg2-binary==2.9.9   # sync driver (Alembic migrations only)
+alembic==1.13.1
+
+# --- Auth ---
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+pydantic-settings==2.2.1
+
+# --- AI (Gemini — free tier) ---
+google-generativeai==0.5.4
+
+# --- NLP / Stylometry ---
+spacy==3.7.4
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1.tar.gz
+textstat==0.7.3
+
+# --- Export ---
+weasyprint==62.3          # PDF — needs GTK3 runtime on Windows
+jinja2==3.1.4             # LaTeX templates
+
+# --- Utilities ---
+python-dotenv==1.0.1
+aiofiles==23.2.1
