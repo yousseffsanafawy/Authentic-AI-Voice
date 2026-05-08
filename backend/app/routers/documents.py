@@ -4,37 +4,31 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.database import get_db
-from app.dependencies import get_current_user
-from app.models.user import User
 from app.models.document import Document
 from app.schemas.document import DocumentCreate, DocumentUpdate, DocumentOut, DocumentDetail
 from app.services.document_service import detect_flags
 
 router = APIRouter()
 
+# Sprint 1: no auth — hardcoded user. Replaced by get_current_user in Sprint 2.
+DEV_USER_ID = "dev-user"
+
 
 @router.get("", response_model=list[DocumentOut])
-async def list_documents(
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
+async def list_documents(db: AsyncSession = Depends(get_db)):
     result = await db.execute(
         select(Document)
-        .where(Document.user_id == user.id, Document.is_archived == False)
+        .where(Document.user_id == DEV_USER_ID, Document.is_archived == False)
         .order_by(Document.updated_at.desc())
     )
     return result.scalars().all()
 
 
 @router.post("", response_model=DocumentDetail, status_code=201)
-async def create_document(
-    body: DocumentCreate,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
+async def create_document(body: DocumentCreate, db: AsyncSession = Depends(get_db)):
     doc = Document(
         id=str(uuid.uuid4()),
-        user_id=user.id,
+        user_id=DEV_USER_ID,
         title=body.title,
         content={"type": "doc", "content": [{"type": "paragraph"}]},
         content_text="",
@@ -46,23 +40,15 @@ async def create_document(
 
 
 @router.get("/{doc_id}", response_model=DocumentDetail)
-async def get_document(
-    doc_id: str,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    doc = await _get_owned_doc(doc_id, user.id, db)
-    return doc
+async def get_document(doc_id: str, db: AsyncSession = Depends(get_db)):
+    return await _get_owned_doc(doc_id, db)
 
 
 @router.patch("/{doc_id}", response_model=DocumentOut)
 async def update_document(
-    doc_id: str,
-    body: DocumentUpdate,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    doc_id: str, body: DocumentUpdate, db: AsyncSession = Depends(get_db)
 ):
-    doc = await _get_owned_doc(doc_id, user.id, db)
+    doc = await _get_owned_doc(doc_id, db)
     update_data = body.model_dump(exclude_none=True)
     for field, value in update_data.items():
         setattr(doc, field, value)
@@ -78,19 +64,17 @@ async def update_document(
 
 
 @router.delete("/{doc_id}", status_code=204)
-async def archive_document(
-    doc_id: str,
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    doc = await _get_owned_doc(doc_id, user.id, db)
+async def archive_document(doc_id: str, db: AsyncSession = Depends(get_db)):
+    doc = await _get_owned_doc(doc_id, db)
     doc.is_archived = True
     await db.commit()
 
 
-async def _get_owned_doc(doc_id: str, user_id: str, db: AsyncSession) -> Document:
+async def _get_owned_doc(doc_id: str, db: AsyncSession) -> Document:
     result = await db.execute(
-        select(Document).where(Document.id == doc_id, Document.user_id == user_id)
+        select(Document).where(
+            Document.id == doc_id, Document.user_id == DEV_USER_ID
+        )
     )
     doc = result.scalar_one_or_none()
     if not doc:
