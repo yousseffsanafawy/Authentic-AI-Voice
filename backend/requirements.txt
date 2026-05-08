@@ -1,0 +1,33 @@
+# ============================================================
+# Authentic AI Voice — Python Dependencies
+# ============================================================
+
+# --- Web Framework ---
+fastapi==0.110.3
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9
+
+# --- Database ---
+sqlalchemy[asyncio]==2.0.30
+asyncpg==0.29.0
+alembic==1.13.1
+
+# --- Auth ---
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+pydantic-settings==2.2.1
+
+# --- AI (Gemini — free tier) ---
+google-generativeai==0.5.4
+
+# --- NLP / Stylometry ---
+spacy==3.7.1
+textstat==0.7.3
+
+# --- Export ---
+weasyprint==62.3
+jinja2==3.1.4
+
+# --- Utilities ---
+python-dotenv==1.0.1
+aiofiles==23.2.1
