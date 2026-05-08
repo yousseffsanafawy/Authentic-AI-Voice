@@ -1,0 +1,95 @@
+# ============================================================
+# Authentic AI Voice — Frontend Dependencies
+# Node.js / npm equivalent of requirements.txt
+# Install: npm install
+# ============================================================
+
+# ─── Framework ───────────────────────────────────────────────
+next==14.2.35                     # Next.js App Router (React framework)
+react==18.3.1                     # React core
+react-dom==18.3.1                 # React DOM renderer
+
+# ─── Rich Text Editor (Tiptap v3) ────────────────────────────
+# NOTE: All Tiptap packages MUST be the same version
+@tiptap/react==3.22.5             # Tiptap React integration
+@tiptap/starter-kit==3.22.5       # Bold, Italic, Headings, Lists, Code, HR, etc.
+@tiptap/pm==3.22.5                # ProseMirror peer dependency (required by v3)
+@tiptap/extension-underline==3.22.5
+@tiptap/extension-blockquote==3.22.5
+@tiptap/extension-code-block-lowlight==3.22.5  # Syntax-highlighted code blocks
+@tiptap/extension-image==3.22.5
+@tiptap/extension-link==3.22.5
+@tiptap/extension-table==3.22.5
+@tiptap/extension-table-row==3.22.5
+@tiptap/extension-table-cell==3.22.5
+@tiptap/extension-table-header==3.22.5
+
+# ─── Syntax Highlighting (for code blocks) ───────────────────
+lowlight==3.3.0                   # highlight.js-based syntax highlighter for Tiptap
+
+# ─── State Management ────────────────────────────────────────
+zustand==5.0.13                   # Lightweight global state (toasts, save status)
+
+# ─── HTTP Client ─────────────────────────────────────────────
+axios==1.16.0                     # HTTP requests to FastAPI backend
+                                  # Configured in lib/api.ts with JWT interceptors
+                                  # NOTE: SSE streaming uses native fetch() not Axios
+
+# ─── Styling ─────────────────────────────────────────────────
+tailwindcss==3.4.19               # Utility-first CSS framework
+postcss==8.5.14                   # Required by Tailwind
+
+# ============================================================
+# DEV DEPENDENCIES (not bundled in production)
+# ============================================================
+
+typescript==5.9.3
+@types/node==20.19.40
+@types/react==18.3.28
+@types/react-dom==18.3.7
+eslint==8.57.1
+eslint-config-next==14.2.35
+
+# ============================================================
+# Environment Variables (.env.local)
+# ============================================================
+#
+# NEXT_PUBLIC_API_URL=http://localhost:8000
+#
+# ============================================================
+# How to Install
+# ============================================================
+#
+# First-time setup:
+#   npm install
+#
+# Run development server:
+#   npm run dev        → http://localhost:3000
+#
+# Build for production:
+#   npm run build
+#   npm start
+#
+# Add a new package:
+#   npm install <package-name>
+#
+# ============================================================
+# Notes on Tiptap v3 (vs v2)
+# ============================================================
+#
+# This project uses Tiptap v3 (installed: 3.22.5).
+# Key differences from v2 that affect our code:
+#   - @tiptap/pm is now a required explicit peer dependency
+#   - Extension API is backwards compatible for StarterKit extensions
+#   - Table extensions still work identically
+#   - useEditor() and EditorContent API unchanged
+#
+# ============================================================
+# Notes on SSE Streaming (AI Enhancement)
+# ============================================================
+#
+# The useAIEnhance hook (hooks/useAIEnhance.ts) uses the
+# native browser fetch() API, NOT Axios, because:
+#   - Axios does not support ReadableStream / SSE natively
+#   - fetch() + response.body.getReader() is required for SSE
+#
