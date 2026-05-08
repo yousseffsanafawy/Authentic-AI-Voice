@@ -21,7 +21,8 @@ pydantic-settings==2.2.1
 google-generativeai==0.5.4
 
 # --- NLP / Stylometry ---
-spacy==3.7.1
+spacy==3.7.4
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1.tar.gz
 textstat==0.7.3
 
 # --- Export ---
