@@ -1,12 +1,9 @@
 import uuid
 import aiofiles
-from fastapi import APIRouter, Depends
-from fastapi.responses import StreamingResponse
-from io import BytesIO
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.dependencies import get_current_user
-from app.models.user import User
 from app.schemas.voice_profile import ExportPDFRequest, ExportLaTeXRequest
 from app.services.pdf_service import PDFService
 from app.services.latex_service import LaTeXService
@@ -14,14 +11,13 @@ from app.config import settings
 
 router = APIRouter()
 
+# Sprint 1: no auth — hardcoded user. Replaced by get_current_user in Sprint 2.
+DEV_USER_ID = "dev-user"
+
 
 @router.post("/pdf")
-async def export_pdf(
-    body: ExportPDFRequest,
-    user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
-    pdf_bytes = await PDFService(db).generate_pdf(body.document_id, user.id)
+async def export_pdf(body: ExportPDFRequest, db: AsyncSession = Depends(get_db)):
+    pdf_bytes = await PDFService(db).generate_pdf(body.document_id, DEV_USER_ID)
 
     filename = f"{body.document_id}_{uuid.uuid4().hex[:6]}.pdf"
     file_path = settings.STORAGE_DIR / "exports" / filename
@@ -36,13 +32,9 @@ async def export_pdf(
 
 
 @router.post("/latex")
-async def export_latex(
-    body: ExportLaTeXRequest,
-    user: User = Depends(get_current_user),
-    db=Depends(get_db),
-):
+async def export_latex(body: ExportLaTeXRequest, db: AsyncSession = Depends(get_db)):
     latex_str = await LaTeXService(db).generate_latex(
-        body.document_id, user.id, body.options
+        body.document_id, DEV_USER_ID, body.options
     )
 
     filename = f"{body.document_id}_{uuid.uuid4().hex[:6]}.tex"
