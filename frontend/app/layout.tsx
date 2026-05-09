@@ -1,11 +1,21 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Syne } from "next/font/google";
 import "./globals.css";
 import { ToastContainer } from "@/components/ui/ToastContainer";
 
-const inter = Inter({
+// Body font — modern, geometric, highly legible
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  weight: ["300", "400", "500", "600", "700", "800"],
+  variable: "--font-jakarta",
+  display: "swap",
+});
+
+// Display / brand font — distinctive, futuristic
+const syne = Syne({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-syne",
   display: "swap",
 });
 
@@ -21,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={`${jakarta.variable} ${syne.variable}`}>
       <body>
         {children}
         <ToastContainer />

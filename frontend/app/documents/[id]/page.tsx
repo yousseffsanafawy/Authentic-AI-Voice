@@ -8,6 +8,7 @@ import { useEditorStore } from "@/store/editorStore";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import TiptapEditor, { TiptapEditorRef } from "@/components/editor/TiptapEditor";
 import Toolbar from "@/components/editor/Toolbar";
+import { AppIcon } from "@/components/ui/AppLogo";
 
 interface DocumentDetail {
   id: string;
@@ -35,7 +36,7 @@ export default function DocumentPage() {
 
   const { scheduleSave, forceSave } = useAutoSave({ documentId: id });
 
-  // ── Load document on mount ─────────────────────────────────────────────────
+  // ── Load document on mount ───────────────────────────────────────────────────
   useEffect(() => {
     if (!id) return;
     api
@@ -44,7 +45,9 @@ export default function DocumentPage() {
         setDocument(data);
         setTitle(data.title || "Untitled");
         setWordCount(data.word_count || 0);
-        setEditorContent(data.content || { type: "doc", content: [{ type: "paragraph" }] });
+        setEditorContent(
+          data.content || { type: "doc", content: [{ type: "paragraph" }] }
+        );
       })
       .catch(() => {
         addToast("Failed to load document.", "error");
@@ -53,14 +56,13 @@ export default function DocumentPage() {
       .finally(() => setLoading(false));
   }, [id, addToast, router]);
 
-  // ── Editor update handler ──────────────────────────────────────────────────
+  // ── Editor update handler ────────────────────────────────────────────────────
   const handleEditorUpdate = useCallback(
     (json: object, text: string, words: number) => {
       setEditorContent(json);
       setEditorText(text);
       setWordCount(words);
       scheduleSave({ content: json, content_text: text, word_count: words });
-      // Sync editor instance from ref for Toolbar
       if (editorRef.current?.editor && !editorInstance) {
         setEditorInstance(editorRef.current.editor);
       }
@@ -68,23 +70,19 @@ export default function DocumentPage() {
     [scheduleSave, editorInstance]
   );
 
-  // ── Ctrl+S: force save ─────────────────────────────────────────────────────
+  // ── Ctrl+S: force save ───────────────────────────────────────────────────────
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
-        forceSave({
-          content: editorContent,
-          content_text: editorText,
-          word_count: wordCount,
-        });
+        forceSave({ content: editorContent, content_text: editorText, word_count: wordCount });
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [forceSave, editorContent, editorText, wordCount]);
 
-  // ── Title save on blur ─────────────────────────────────────────────────────
+  // ── Title save on blur ───────────────────────────────────────────────────────
   const handleTitleBlur = async () => {
     const trimmed = title.trim() || "Untitled";
     setTitle(trimmed);
@@ -95,26 +93,30 @@ export default function DocumentPage() {
     }
   };
 
-  // ── PDF export ─────────────────────────────────────────────────────────────
+  // ── PDF export: direct download with document name ───────────────────────────
   const handleExportPDF = async () => {
     setIsExporting(true);
     try {
       // Save latest content first
-      await forceSave({
-        content: editorContent,
-        content_text: editorText,
-        word_count: wordCount,
-      });
+      await forceSave({ content: editorContent, content_text: editorText, word_count: wordCount });
+
       const { data } = await api.post("/api/export/pdf", { document_id: id });
-      window.open(data.download_url, "_blank");
-      addToast("PDF exported successfully!", "success");
+
+      // Direct download — named after the document title
+      const safeName = (title || "document").replace(/[^a-z0-9\-_\s]/gi, "").trim() || "document";
+      const link = window.document.createElement("a");
+      link.href = data.download_url;
+      link.download = `${safeName}.pdf`;
+      link.style.display = "none";
+      window.document.body.appendChild(link);
+      link.click();
+      window.document.body.removeChild(link);
+
+      addToast(`"${safeName}.pdf" downloaded!`, "success");
     } catch (err: any) {
       const detail = err?.response?.data?.detail || "PDF export failed.";
       if (detail.includes("GTK3")) {
-        addToast(
-          "PDF requires GTK3. See docs/09_setup_dependencies.md for setup.",
-          "error"
-        );
+        addToast("PDF requires GTK3 runtime. See setup docs.", "error");
       } else {
         addToast(detail, "error");
       }
@@ -123,18 +125,26 @@ export default function DocumentPage() {
     }
   };
 
+  // ── Loading state ────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
         style={{ background: "var(--color-bg-deep)" }}
       >
-        <div className="flex flex-col items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin"
-            style={{ borderColor: "var(--color-neon-primary)" }}
-          />
-          <span className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+        <div className="flex flex-col items-center gap-4">
+          {/* Animated mint ring */}
+          <div className="relative w-12 h-12">
+            <div
+              className="w-12 h-12 rounded-full border-2 border-t-transparent animate-spin"
+              style={{ borderColor: "var(--color-mint)", borderTopColor: "transparent" }}
+            />
+            <div
+              className="absolute inset-2 rounded-full"
+              style={{ background: "radial-gradient(circle, rgba(52,211,153,0.15), transparent)" }}
+            />
+          </div>
+          <span className="text-sm font-medium" style={{ color: "var(--color-text-muted)" }}>
             Loading document…
           </span>
         </div>
@@ -147,31 +157,25 @@ export default function DocumentPage() {
       className="flex flex-col h-screen overflow-hidden"
       style={{ background: "var(--color-bg-deep)" }}
     >
-      {/* ── Page Header ─────────────────────────────────────────────────────── */}
+      {/* ── Page Header ───────────────────────────────────────────────────────── */}
       <div
-        className="flex items-center gap-3 px-6 py-3 flex-shrink-0"
+        className="flex items-center gap-3 px-4 py-2.5 flex-shrink-0"
         style={{
-          background: "rgba(7,9,15,0.9)",
-          backdropFilter: "blur(20px)",
+          background: "rgba(7,9,15,0.92)",
+          backdropFilter: "blur(24px)",
           borderBottom: "1px solid var(--color-border)",
         }}
       >
-        {/* Back button */}
+        {/* Back */}
         <button
           onClick={() => router.push("/dashboard")}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all duration-150"
-          style={{ color: "var(--color-text-muted)" }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background = "var(--color-surface-2)";
-            (e.currentTarget as HTMLButtonElement).style.color = "var(--color-text)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background = "transparent";
-            (e.currentTarget as HTMLButtonElement).style.color = "var(--color-text-muted)";
-          }}
+          className="btn-ghost flex-shrink-0"
         >
           ← Back
         </button>
+
+        {/* Divider */}
+        <div className="w-px h-5 flex-shrink-0" style={{ background: "var(--color-border-bright)" }} />
 
         {/* Editable title */}
         <input
@@ -179,20 +183,59 @@ export default function DocumentPage() {
           onChange={(e) => setTitle(e.target.value)}
           onBlur={handleTitleBlur}
           onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
-          className="flex-1 bg-transparent border-none outline-none font-semibold text-base text-white
-            placeholder:text-gray-600 min-w-0"
-          style={{ color: "var(--color-text)" }}
+          className="flex-1 bg-transparent border-none outline-none font-semibold text-sm text-white
+            placeholder:text-gray-600 min-w-0 transition-colors duration-150"
+          style={{ color: "var(--color-text)", fontFamily: "var(--font-display)", letterSpacing: "-0.01em" }}
           placeholder="Document title…"
           aria-label="Document title"
         />
 
-        {/* Logo */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs font-medium gradient-text hidden sm:block">Authentic Voice</span>
+        {/* Save status */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {saveStatus === "saving" && (
+            <>
+              <span className="status-dot saving" />
+              <span className="text-xs" style={{ color: "var(--color-warning)" }}>Saving…</span>
+            </>
+          )}
+          {saveStatus === "saved" && (
+            <>
+              <span className="status-dot saved" />
+              <span className="text-xs" style={{ color: "var(--color-mint)" }}>Saved</span>
+            </>
+          )}
+          {saveStatus === "error" && (
+            <>
+              <span className="status-dot error" />
+              <span className="text-xs" style={{ color: "var(--color-error)" }}>Error</span>
+            </>
+          )}
         </div>
+
+        {/* Divider */}
+        <div className="w-px h-5 flex-shrink-0" style={{ background: "var(--color-border-bright)" }} />
+
+        {/* Export PDF */}
+        <button
+          onClick={handleExportPDF}
+          disabled={isExporting}
+          className="btn-primary py-1.5 px-4 text-sm flex-shrink-0"
+        >
+          {isExporting ? (
+            <>
+              <span className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin flex-shrink-0" />
+              Exporting…
+            </>
+          ) : (
+            <>↓ Export PDF</>
+          )}
+        </button>
+
+        {/* Logo mark */}
+        <AppIcon size={26} />
       </div>
 
-      {/* ── Toolbar ─────────────────────────────────────────────────────────── */}
+      {/* ── Toolbar ─────────────────────────────────────────────────────────────── */}
       <Toolbar
         editor={editorInstance}
         wordCount={wordCount}
@@ -201,8 +244,11 @@ export default function DocumentPage() {
         isExporting={isExporting}
       />
 
-      {/* ── Editor ──────────────────────────────────────────────────────────── */}
-      <div className="flex-1 overflow-hidden" style={{ background: "var(--color-surface)" }}>
+      {/* ── Editor ──────────────────────────────────────────────────────────────── */}
+      <div
+        className="flex-1 overflow-auto"
+        style={{ background: "var(--color-surface)" }}
+      >
         {editorContent && Object.keys(editorContent).length > 0 && (
           <TiptapEditor
             ref={editorRef}
