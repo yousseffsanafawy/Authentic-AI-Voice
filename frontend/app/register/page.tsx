@@ -1,10 +1,260 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import api from "@/lib/api";
+import AppLogo from "@/components/ui/AppLogo";
+
 export default function RegisterPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    // Client-side validation
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data } = await api.post("/api/auth/register", { email, password });
+      // Store token in BOTH localStorage (for Axios) AND cookie (for middleware)
+      localStorage.setItem("auth_token", data.access_token);
+      document.cookie = `auth_token=${data.access_token}; path=/; max-age=${60 * 60 * 24}; SameSite=Strict`;
+      router.push("/dashboard");
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 409) {
+        setError("An account with this email already exists.");
+      } else {
+        setError(err?.response?.data?.detail || "Registration failed. Try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-lg shadow w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">Create Account</h1>
-        <p className="text-gray-500 text-center text-sm">
-          Sprint 2 — register form will be built here.
+    <main
+      className="min-h-screen flex items-center justify-center px-4 py-8"
+      style={{ background: "var(--color-bg-deep)" }}
+    >
+      {/* Ambient glow */}
+      <div
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse 70% 60% at 50% 0%, rgba(6,182,212,0.10) 0%, transparent 70%)",
+        }}
+      />
+
+      <div
+        className="w-full max-w-[420px] relative"
+        style={{
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-border)",
+          borderRadius: "var(--radius-xl)",
+          padding: "2.5rem",
+          boxShadow: "var(--shadow-lg)",
+        }}
+      >
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <AppLogo size="md" />
+        </div>
+
+        <h1
+          className="text-2xl font-bold mb-1 text-center"
+          style={{ fontFamily: "var(--font-display)", color: "var(--color-text)" }}
+        >
+          Create account
+        </h1>
+        <p className="text-center text-sm mb-8" style={{ color: "var(--color-text-muted)" }}>
+          Start building your authentic voice
+        </p>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* Email */}
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="email"
+              className="text-xs font-medium uppercase tracking-wider"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              style={{
+                background: "var(--color-surface-2)",
+                border: "1px solid var(--color-border-bright)",
+                borderRadius: "var(--radius-md)",
+                color: "var(--color-text)",
+                padding: "0.7rem 1rem",
+                width: "100%",
+                outline: "none",
+                transition: "border-color 0.2s",
+                fontSize: "0.875rem",
+              }}
+              onFocus={(e) => (e.target.style.borderColor = "var(--color-cyan)")}
+              onBlur={(e) => (e.target.style.borderColor = "var(--color-border-bright)")}
+            />
+          </div>
+
+          {/* Password */}
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="password"
+              className="text-xs font-medium uppercase tracking-wider"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Password
+            </label>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPw ? "text" : "password"}
+                required
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Min. 8 characters"
+                style={{
+                  background: "var(--color-surface-2)",
+                  border: "1px solid var(--color-border-bright)",
+                  borderRadius: "var(--radius-md)",
+                  color: "var(--color-text)",
+                  padding: "0.7rem 2.8rem 0.7rem 1rem",
+                  width: "100%",
+                  outline: "none",
+                  transition: "border-color 0.2s",
+                  fontSize: "0.875rem",
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "var(--color-cyan)")}
+                onBlur={(e) => (e.target.style.borderColor = "var(--color-border-bright)")}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPw((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs"
+                style={{ color: "var(--color-text-muted)" }}
+                tabIndex={-1}
+              >
+                {showPw ? "Hide" : "Show"}
+              </button>
+            </div>
+          </div>
+
+          {/* Confirm Password */}
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="confirmPassword"
+              className="text-xs font-medium uppercase tracking-wider"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Confirm Password
+            </label>
+            <div className="relative">
+              <input
+                id="confirmPassword"
+                type={showConfirm ? "text" : "password"}
+                required
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repeat password"
+                style={{
+                  background: "var(--color-surface-2)",
+                  border: "1px solid var(--color-border-bright)",
+                  borderRadius: "var(--radius-md)",
+                  color: "var(--color-text)",
+                  padding: "0.7rem 2.8rem 0.7rem 1rem",
+                  width: "100%",
+                  outline: "none",
+                  transition: "border-color 0.2s",
+                  fontSize: "0.875rem",
+                }}
+                onFocus={(e) => (e.target.style.borderColor = "var(--color-cyan)")}
+                onBlur={(e) => (e.target.style.borderColor = "var(--color-border-bright)")}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirm((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs"
+                style={{ color: "var(--color-text-muted)" }}
+                tabIndex={-1}
+              >
+                {showConfirm ? "Hide" : "Show"}
+              </button>
+            </div>
+          </div>
+
+          {/* Inline error */}
+          {error && (
+            <p
+              className="text-sm px-3 py-2"
+              style={{
+                color: "var(--color-error)",
+                background: "rgba(244,63,94,0.08)",
+                border: "1px solid rgba(244,63,94,0.2)",
+                borderRadius: "var(--radius-sm)",
+              }}
+            >
+              {error}
+            </p>
+          )}
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full flex items-center justify-center gap-2 mt-1"
+            style={{ opacity: loading ? 0.7 : 1 }}
+          >
+            {loading ? (
+              <>
+                <span
+                  className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"
+                />
+                Creating account…
+              </>
+            ) : (
+              "Create Account"
+            )}
+          </button>
+        </form>
+
+        {/* Login link */}
+        <p className="text-center text-sm mt-6" style={{ color: "var(--color-text-muted)" }}>
+          Already have an account?{" "}
+          <Link
+            href="/login"
+            style={{ color: "var(--color-cyan)" }}
+            className="font-medium hover:underline"
+          >
+            Sign in
+          </Link>
         </p>
       </div>
     </main>
