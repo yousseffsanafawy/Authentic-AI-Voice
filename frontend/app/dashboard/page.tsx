@@ -29,7 +29,6 @@ function timeAgo(dateStr: string): string {
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-32 animate-fade-up">
-      {/* Animated icon */}
       <div
         className="w-28 h-28 rounded-3xl mb-7 flex items-center justify-center relative"
         style={{ background: "var(--color-surface-2)", border: "1px solid var(--color-border)" }}
@@ -50,7 +49,6 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
           <line x1="32" y1="36" x2="40" y2="36" stroke="var(--color-mint)" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       </div>
-
       <h3 className="text-xl font-semibold text-white mb-2">No documents yet</h3>
       <p className="text-sm mb-8" style={{ color: "var(--color-text-muted)" }}>
         Create your first document and start writing
@@ -63,7 +61,6 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
 }
 
 function DocumentCard({ doc, onClick }: { doc: DocumentOut; onClick: () => void }) {
-  // Deterministic accent color per doc based on id char
   const accentColors = [
     { from: "var(--color-cyan)", to: "var(--color-mint)" },
     { from: "var(--color-mint)", to: "var(--color-purple)" },
@@ -80,12 +77,10 @@ function DocumentCard({ doc, onClick }: { doc: DocumentOut; onClick: () => void 
         border: "1px solid var(--color-border)",
       }}
     >
-      {/* Top accent bar */}
       <div
         className="h-0.5 w-12 rounded-full mb-4 transition-all duration-300 group-hover:w-20"
         style={{ background: `linear-gradient(90deg, ${accent.from}, ${accent.to})` }}
       />
-
       <div className="flex items-start gap-3">
         <div
           className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -101,11 +96,12 @@ function DocumentCard({ doc, onClick }: { doc: DocumentOut; onClick: () => void 
             <line x1="4" y1="10" x2="7" y2="10" stroke={accent.from} strokeWidth="0.8" strokeLinecap="round" strokeOpacity="0.5" />
           </svg>
         </div>
-
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-white truncate text-sm leading-snug mb-1"
+          <h3
+            className="font-semibold text-white truncate text-sm leading-snug mb-1"
             style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.01em" }}
-            title={doc.title}>
+            title={doc.title}
+          >
             {doc.title || "Untitled"}
           </h3>
           <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
@@ -113,7 +109,6 @@ function DocumentCard({ doc, onClick }: { doc: DocumentOut; onClick: () => void 
             &nbsp;·&nbsp;{timeAgo(doc.updated_at)}
           </p>
         </div>
-
         <span
           className="text-lg opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-0.5"
           style={{ color: "var(--color-mint)" }}
@@ -129,6 +124,8 @@ export default function DashboardPage() {
   const [documents, setDocuments] = useState<DocumentOut[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  // ── SPRINT 2: Auth state ──────────────────────────────────────────────────
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const router = useRouter();
   const { addToast } = useEditorStore();
 
@@ -143,7 +140,24 @@ export default function DashboardPage() {
     }
   }, [addToast]);
 
-  useEffect(() => { fetchDocuments(); }, [fetchDocuments]);
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
+
+  // ── SPRINT 2: Fetch current user for header avatar ────────────────────────
+  useEffect(() => {
+    api
+      .get("/api/auth/me")
+      .then(({ data }) => setUserEmail(data.email))
+      .catch(() => {}); // fail silently — 401 interceptor handles redirect
+  }, []);
+
+  // ── SPRINT 2: Logout handler ──────────────────────────────────────────────
+  const handleLogout = () => {
+    localStorage.removeItem("auth_token");
+    document.cookie = "auth_token=; path=/; max-age=0";
+    router.push("/login");
+  };
 
   const handleCreate = async () => {
     setCreating(true);
@@ -155,6 +169,9 @@ export default function DashboardPage() {
       setCreating(false);
     }
   };
+
+  // Derive avatar initial from email
+  const initial = userEmail ? userEmail[0].toUpperCase() : "?";
 
   return (
     <div className="min-h-screen" style={{ background: "var(--color-bg-deep)" }}>
@@ -189,38 +206,51 @@ export default function DashboardPage() {
             )}
           </button>
 
-          <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
-            style={{
-              background: "linear-gradient(135deg, var(--color-surface-3), var(--color-surface-2))",
-              border: "1px solid var(--color-border-bright)",
-              color: "var(--color-text-muted)",
-            }}
-            title="Sign in — Sprint 2"
-          >
-            ?
+          {/* ── SPRINT 2: User avatar with email initial ── */}
+          <div className="flex items-center gap-2">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+              style={{
+                background: "linear-gradient(135deg, var(--color-cyan), var(--color-mint))",
+                color: "#07090f",
+              }}
+              title={userEmail || "User"}
+            >
+              {initial}
+            </div>
+            {/* ── SPRINT 2: Logout button ── */}
+            <button
+              onClick={handleLogout}
+              className="btn-ghost text-xs"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Sign out
+            </button>
           </div>
         </div>
       </header>
 
       {/* ── Main ──────────────────────────────────────────────────────────────── */}
       <main className="max-w-5xl mx-auto px-6 py-10">
-
-        {/* Page title row */}
         <div className="flex items-end justify-between mb-8 animate-fade-in">
           <div>
             <h1
-            className="text-2xl font-bold text-white mb-1"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            My Documents
-          </h1>
+              className="text-2xl font-bold text-white mb-1"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              My Documents
+            </h1>
             <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-              {loading ? "Loading…" : `${documents.length} document${documents.length !== 1 ? "s" : ""}`}
+              {loading
+                ? "Loading…"
+                : `${documents.length} document${documents.length !== 1 ? "s" : ""}`}
+              {userEmail && (
+                <span style={{ color: "var(--color-text-subtle)" }}>
+                  {" "}· {userEmail}
+                </span>
+              )}
             </p>
           </div>
-
-          {/* Decorative mint pill */}
           {!loading && documents.length > 0 && (
             <div
               className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium"
@@ -235,7 +265,6 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Content */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => <DocumentCardSkeleton key={i} />)}
