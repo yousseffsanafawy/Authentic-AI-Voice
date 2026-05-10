@@ -1,22 +1,19 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import String, DateTime, JSON
+from sqlalchemy import String, DateTime, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
-
 
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[str] = mapped_column(
-        String, primary_key=True, default=lambda: str(uuid.uuid4())
-    )
-    email: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    email: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
-    voice_profile: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    voice_profile: Mapped[dict | None] = mapped_column(JSONB, nullable=True, default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), onupdate=func.now(), nullable=False)
 
-    documents = relationship("Document", back_populates="user", cascade="all, delete")
-    writing_samples = relationship(
-        "WritingSample", back_populates="user", cascade="all, delete"
-    )
+    documents = relationship("Document", back_populates="owner", cascade="all, delete-orphan")
+    writing_samples = relationship("WritingSample", back_populates="user", cascade="all, delete-orphan")
