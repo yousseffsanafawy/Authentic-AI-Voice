@@ -9,6 +9,7 @@ import { useAutoSave } from "@/hooks/useAutoSave";
 import TiptapEditor, { TiptapEditorRef } from "@/components/editor/TiptapEditor";
 import Toolbar from "@/components/editor/Toolbar";
 import { AppIcon } from "@/components/ui/AppLogo";
+import { seedDocuments } from "@/lib/seedData";
 
 interface DocumentDetail {
   id: string;
@@ -50,8 +51,17 @@ export default function DocumentPage() {
         );
       })
       .catch(() => {
-        addToast("Failed to load document.", "error");
-        router.push("/dashboard");
+        const seedDoc = seedDocuments.find((d) => d.id === id);
+        if (seedDoc) {
+          addToast("Backend disconnected. Loaded seed document.", "warning");
+          setDocument(seedDoc);
+          setTitle(seedDoc.title);
+          setWordCount(seedDoc.word_count);
+          setEditorContent(seedDoc.content);
+        } else {
+          addToast("Failed to load document.", "error");
+          router.push("/dashboard");
+        }
       })
       .finally(() => setLoading(false));
   }, [id, addToast, router]);

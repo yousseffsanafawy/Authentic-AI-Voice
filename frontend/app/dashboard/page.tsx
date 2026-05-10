@@ -6,6 +6,7 @@ import api from "@/lib/api";
 import { useEditorStore } from "@/store/editorStore";
 import { DocumentCardSkeleton } from "@/components/ui/Skeleton";
 import AppLogo from "@/components/ui/AppLogo";
+import { seedDocuments } from "@/lib/seedData";
 
 interface DocumentOut {
   id: string;
@@ -137,7 +138,13 @@ export default function DashboardPage() {
       const { data } = await api.get("/api/documents");
       setDocuments(data);
     } catch {
-      addToast("Failed to load documents. Is the backend running?", "error");
+      addToast("Backend disconnected. Loading seed data.", "warning");
+      setDocuments(seedDocuments.map(doc => ({
+        id: doc.id,
+        title: doc.title,
+        word_count: doc.word_count,
+        updated_at: doc.updated_at
+      })));
     } finally {
       setLoading(false);
     }
@@ -210,11 +217,11 @@ export default function DashboardPage() {
         <div className="flex items-end justify-between mb-8 animate-fade-in">
           <div>
             <h1
-            className="text-2xl font-bold text-white mb-1"
-            style={{ fontFamily: "var(--font-display)" }}
-          >
-            My Documents
-          </h1>
+              className="text-2xl font-bold text-white mb-1"
+              style={{ fontFamily: "var(--font-display)" }}
+            >
+              My Documents
+            </h1>
             <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
               {loading ? "Loading…" : `${documents.length} document${documents.length !== 1 ? "s" : ""}`}
             </p>
