@@ -100,26 +100,42 @@ export default function DocumentPage() {
       // Save latest content first
       await forceSave({ content: editorContent, content_text: editorText, word_count: wordCount });
 
-      const { data } = await api.post("/api/export/pdf", { document_id: id });
+      // IMPORTANT: responseType: 'blob' — without this Axios corrupts binary PDF bytes
+      const response = await api.post(
+        "/api/export/pdf",
+        { document_id: id },
+        { responseType: "blob" }
+      );
 
-      // Direct download — named after the document title
+      // Create a temporary object URL from the blob and trigger download
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const objectUrl = URL.createObjectURL(blob);
       const safeName = (title || "document").replace(/[^a-z0-9\-_\s]/gi, "").trim() || "document";
+
       const link = window.document.createElement("a");
-      link.href = data.download_url;
+      link.href = objectUrl;
       link.download = `${safeName}.pdf`;
       link.style.display = "none";
       window.document.body.appendChild(link);
       link.click();
       window.document.body.removeChild(link);
 
+      // Revoke the object URL after a short delay to free memory
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 10_000);
+
       addToast(`"${safeName}.pdf" downloaded!`, "success");
     } catch (err: any) {
-      const detail = err?.response?.data?.detail || "PDF export failed.";
-      if (detail.includes("GTK3")) {
-        addToast("PDF requires GTK3 runtime. See setup docs.", "error");
+      // Blob responses wrap errors differently — parse the blob to get detail
+      let detail = "PDF export failed.";
+      if (err?.response?.data instanceof Blob) {
+        try {
+          const text = await err.response.data.text();
+          detail = JSON.parse(text)?.detail ?? detail;
+        } catch { /* ignore */ }
       } else {
-        addToast(detail, "error");
+        detail = err?.response?.data?.detail ?? detail;
       }
+      addToast(detail, "error");
     } finally {
       setIsExporting(false);
     }

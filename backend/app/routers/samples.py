@@ -11,7 +11,7 @@ from app.models.user import User
 from app.models.writing_sample import WritingSample
 from app.config import settings
 
-router = APIRouter()
+router = APIRouter(prefix="/samples", tags=["samples"])
 
 ALLOWED_EXTENSIONS = {"txt", "pdf", "docx"}
 
@@ -23,7 +23,6 @@ async def upload_sample(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # Enforce max 5 samples
     count = await db.scalar(
         select(func.count()).where(WritingSample.user_id == user.id)
     )
@@ -80,6 +79,18 @@ async def list_samples(
     return [{"id": s.id, "filename": s.filename, "created_at": s.created_at} for s in samples]
 
 
+# NOTE: /voice-profile MUST be declared before /{sample_id} to avoid route shadowing
+@router.get("/voice-profile")
+async def get_voice_profile(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    fresh_user = await db.get(User, user.id)
+    if not fresh_user or not fresh_user.voice_profile:
+        return {"status": "not_analyzed", "voice_profile": None}
+    return {"status": "ready", "voice_profile": fresh_user.voice_profile}
+
+
 @router.delete("/{sample_id}", status_code=204)
 async def delete_sample(
     sample_id: str,
@@ -104,17 +115,6 @@ async def delete_sample(
     await db.commit()
 
     background_tasks.add_task(_run_stylometry, user.id)
-
-
-@router.get("/voice-profile")
-async def get_voice_profile(
-    user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-):
-    fresh_user = await db.get(User, user.id)
-    if not fresh_user or not fresh_user.voice_profile:
-        return {"status": "not_analyzed", "voice_profile": None}
-    return {"status": "ready", "voice_profile": fresh_user.voice_profile}
 
 
 async def _run_stylometry(user_id: str):

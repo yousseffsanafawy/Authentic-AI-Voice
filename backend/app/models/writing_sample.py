@@ -18,5 +18,6 @@ class WritingSample(Base):
     file_path: Mapped[str] = mapped_column(String, nullable=False)
     extracted_text: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = relationship("User", back_populates="writing_samples")

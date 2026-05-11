@@ -105,7 +105,7 @@ function DocumentCard({ doc, onClick }: { doc: DocumentOut; onClick: () => void 
             {doc.title || "Untitled"}
           </h3>
           <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-            {doc.word_count.toLocaleString()} {doc.word_count === 1 ? "word" : "words"}
+            {(doc.word_count || 0).toLocaleString()} {doc.word_count === 1 ? "word" : "words"}
             &nbsp;·&nbsp;{timeAgo(doc.updated_at)}
           </p>
         </div>
@@ -149,7 +149,7 @@ export default function DashboardPage() {
     api
       .get("/api/auth/me")
       .then(({ data }) => setUserEmail(data.email))
-      .catch(() => {}); // fail silently — 401 interceptor handles redirect
+      .catch(() => { }); // fail silently — 401 interceptor handles redirect
   }, []);
 
   // ── SPRINT 2: Logout handler ──────────────────────────────────────────────
