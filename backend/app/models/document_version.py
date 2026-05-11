@@ -18,5 +18,5 @@ class DocumentVersion(Base):
     content: Mapped[dict] = mapped_column(JSON)
     content_text: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     document = relationship("Document", back_populates="versions")

@@ -1,6 +1,6 @@
 import uuid
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import datetime
+from typing import Optional, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict
@@ -19,12 +19,14 @@ router = APIRouter(prefix="/api/documents", tags=["documents"])
 
 class DocumentCreate(BaseModel):
     title: str = "Untitled"
-    content: Optional[str] = None
+    content: Optional[Any] = None
 
 
 class DocumentUpdate(BaseModel):
     title: Optional[str] = None
-    content: Optional[str] = None
+    content: Optional[Any] = None
+    content_text: Optional[str] = None
+    word_count: Optional[int] = None
     is_archived: Optional[bool] = None
 
 
@@ -32,12 +34,22 @@ class DocumentOut(BaseModel):
     id: str
     user_id: str
     title: str
-    content: Optional[str]
+    content: Optional[Any] = None
+    content_text: str = ""
+    word_count: int = 0
+    current_version: int = 1
+    has_tables: bool = False
+    has_footnotes: bool = False
     is_archived: bool
     created_at: datetime
     updated_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        # Serialize datetimes as UTC ISO strings (e.g. "2026-05-11T01:23:45Z")
+        # so the browser's Date.now() comparison in timeAgo() is correct
+        json_encoders={datetime: lambda dt: dt.strftime("%Y-%m-%dT%H:%M:%SZ")},
+    )
 
 
 # ── Ownership helper ──────────────────────────────────────────────────────────
@@ -108,9 +120,13 @@ async def update_document(
     doc = await _get_owned_doc(doc_id, user.id, db)
 
     update_data = payload.model_dump(exclude_unset=True)
+    
+    # Safety net: Ensure frontend doesn't accidentally override timestamps
+    update_data.pop("updated_at", None)
+    update_data.pop("created_at", None)
+
     for field, value in update_data.items():
         setattr(doc, field, value)
-    doc.updated_at = datetime.now(timezone.utc)
 
     await db.commit()
     await db.refresh(doc)

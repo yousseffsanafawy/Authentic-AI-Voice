@@ -14,14 +14,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Auth and document routers already have full /api/* prefixes
 app.include_router(auth.router)
 app.include_router(documents.router)
 app.include_router(export.router)
-app.include_router(versions.router, prefix="/api")
+
+# Versions needs /api/documents prefix (routes are /{doc_id}/versions/*)
+app.include_router(versions.router, prefix="/api/documents", tags=["versions"])
+
+# Samples already has /samples prefix → mount under /api
 app.include_router(samples.router, prefix="/api")
+
+# AI already has no prefix on the route itself → mount under /api
 app.include_router(ai.router, prefix="/api")
 
 app.mount("/static", StaticFiles(directory=str(settings.STORAGE_DIR)), name="static")
+
 
 @app.get("/health", tags=["health"])
 async def health():
