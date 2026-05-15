@@ -1,4 +1,5 @@
 from typing import AsyncGenerator
+import logging
 import google.generativeai as genai
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,7 +30,7 @@ class AIService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
+            model_name="gemini-2.5-pro",
             system_instruction=SYSTEM_PROMPT,
         )
 
@@ -64,9 +65,12 @@ class AIService:
             raise HTTPException(status_code=500, detail=f"AI service error: {error_str}")
 
     async def _get_voice_profile(self, user_id: str) -> dict:
+        logger = logging.getLogger(__name__)
         user = await self.db.get(User, user_id)
         if user and user.voice_profile:
+            logger.info("Using real voice profile for user %s", user_id)
             return user.voice_profile
+        logger.info("Using DEFAULT voice profile for user %s", user_id)
         return DEFAULT_PROFILE
 
     def _format_profile(self, profile: dict) -> str:
