@@ -1,5 +1,5 @@
 from typing import Optional, Any
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class VoiceProfileOut(BaseModel):
@@ -8,8 +8,16 @@ class VoiceProfileOut(BaseModel):
 
 
 class EnhanceRequest(BaseModel):
-    selected_text: str
-    instruction: str = "Make this sound more like me"
+    selected_text: str = Field(
+        min_length=1,
+        max_length=5000,
+        description="Text to enhance (1–5000 chars)",
+    )
+    instruction: str = Field(
+        default="Make this sound more like me",
+        max_length=500,
+        description="Enhancement instruction",
+    )
 
 
 class ExportPDFRequest(BaseModel):

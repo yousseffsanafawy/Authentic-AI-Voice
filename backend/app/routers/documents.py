@@ -11,6 +11,7 @@ from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.document import Document
 from app.models.user import User
+from app.models.document_version import DocumentVersion
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
 
@@ -120,13 +121,28 @@ async def update_document(
     doc = await _get_owned_doc(doc_id, user.id, db)
 
     update_data = payload.model_dump(exclude_unset=True)
-    
-    # Safety net: Ensure frontend doesn't accidentally override timestamps
+
+    # Safety net: ensure frontend doesn't accidentally override timestamps
     update_data.pop("updated_at", None)
     update_data.pop("created_at", None)
 
     for field, value in update_data.items():
         setattr(doc, field, value)
+
+    # Increment save counter and stamp updated_at explicitly
+    doc.current_version = (doc.current_version or 0) + 1
+    doc.updated_at = datetime.utcnow()
+
+    # Auto-snapshot every 10th save
+    if doc.current_version % 10 == 0:
+        snapshot = DocumentVersion(
+            id=str(uuid.uuid4()),
+            document_id=doc.id,
+            version_number=doc.current_version,
+            content=doc.content,
+            content_text=doc.content_text or "",
+        )
+        db.add(snapshot)
 
     await db.commit()
     await db.refresh(doc)

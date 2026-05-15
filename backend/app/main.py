@@ -14,10 +14,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Auth and document routers already have full /api/* prefixes
-app.include_router(auth.router)
-app.include_router(documents.router)
-app.include_router(export.router)
+app.include_router(auth.router, prefix="", tags=["auth"])
+app.include_router(samples.router,   prefix="/api/samples",   tags=["samples"])
+app.include_router(export.router,    prefix="/api/export",    tags=["export"])
+
+# The ones we updated for Sprint 3:
+app.include_router(documents.router, prefix="")      
+app.include_router(versions.router,  prefix="/api")  
+app.include_router(ai.router,        prefix="/api")
 
 # Versions needs /api/documents prefix (routes are /{doc_id}/versions/*)
 app.include_router(versions.router, prefix="/api/documents", tags=["versions"])
@@ -26,7 +30,7 @@ app.include_router(versions.router, prefix="/api/documents", tags=["versions"])
 app.include_router(samples.router, prefix="/api")
 
 # AI already has no prefix on the route itself → mount under /api
-app.include_router(ai.router, prefix="/api")
+app.include_router(ai.router, prefix="/api", tags=["ai"])
 
 app.mount("/static", StaticFiles(directory=str(settings.STORAGE_DIR)), name="static")
 

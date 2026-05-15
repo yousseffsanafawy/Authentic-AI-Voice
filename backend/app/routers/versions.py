@@ -9,7 +9,7 @@ from app.models.user import User
 from app.models.document import Document
 from app.models.document_version import DocumentVersion
 
-router = APIRouter()
+router = APIRouter(prefix="/documents", tags=["versions"])
 
 
 @router.get("/{doc_id}/versions")
@@ -47,12 +47,12 @@ async def save_version(
         document_id=doc_id,
         version_number=doc.current_version,
         content=doc.content,
-        content_text=doc.content_text,
+        content_text=doc.content_text or "",   # ← null guard
     )
     db.add(version)
     await db.commit()
+    await db.refresh(version)                  # ← ensures all DB-generated fields are loaded
     return {"id": version.id, "version_number": version.version_number}
-
 
 @router.get("/{doc_id}/versions/{version_number}")
 async def get_version(
