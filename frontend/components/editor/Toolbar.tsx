@@ -8,6 +8,8 @@ interface ToolbarProps {
   saveStatus: "idle" | "saving" | "saved" | "error";
   onExportPDF: () => void;
   isExporting?: boolean;
+  isHistoryOpen?: boolean;
+  onToggleHistory?: () => void;
 }
 
 interface ToolbarButtonProps {
@@ -65,6 +67,8 @@ export default function Toolbar({
   saveStatus,
   onExportPDF,
   isExporting = false,
+  isHistoryOpen = false,
+  onToggleHistory,
 }: ToolbarProps) {
   if (!editor) return null;
 
@@ -222,6 +226,36 @@ export default function Toolbar({
             <>⬇ PDF</>
           )}
         </button>
+        {/* Version History toggle */}
+        {onToggleHistory && (
+          <button
+            onClick={onToggleHistory}
+            title="Version History"
+            className="relative px-2.5 py-1.5 rounded-md text-sm font-medium transition-all duration-150"
+            style={{
+              background: isHistoryOpen
+                ? "linear-gradient(135deg, var(--color-mint), var(--color-cyan))"
+                : "transparent",
+              color: isHistoryOpen ? "#fff" : "var(--color-text-muted)",
+            }}
+            onMouseEnter={(e) => {
+              if (!isHistoryOpen) {
+                (e.currentTarget as HTMLButtonElement).style.background = "var(--color-surface-3)";
+                (e.currentTarget as HTMLButtonElement).style.color = "var(--color-text)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isHistoryOpen) {
+                (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+                (e.currentTarget as HTMLButtonElement).style.color = "var(--color-text-muted)";
+              }
+            }}
+            aria-label="Toggle version history"
+            aria-pressed={isHistoryOpen}
+          >
+            🕒 History
+          </button>
+        )}
       </div>
     </div>
   );

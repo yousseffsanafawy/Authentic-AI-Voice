@@ -118,8 +118,19 @@ async def update_document(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    doc = await _get_owned_doc(doc_id, user.id, db)
+    # 1. Fetch the document WITH A ROW LOCK to prevent race conditions under heavy load
+    query = (
+        select(Document)
+        .where(Document.id == doc_id, Document.user_id == user.id)
+        .with_for_update()
+    )
+    result = await db.execute(query)
+    doc = result.scalar_one_or_none()
 
+    if not doc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
+
+    # 2. Proceed with the update
     update_data = payload.model_dump(exclude_unset=True)
 
     # Safety net: ensure frontend doesn't accidentally override timestamps

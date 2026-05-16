@@ -3,12 +3,17 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Editor } from "@tiptap/react";
+import { BubbleMenu } from "@tiptap/react/menus";
+import { Sparkles } from "lucide-react";
 import api from "@/lib/api";
 import { useEditorStore } from "@/store/editorStore";
 import { useAutoSave } from "@/hooks/useAutoSave";
+import { useEditorSelection } from "@/hooks/useEditorSelection";
 import TiptapEditor, { TiptapEditorRef } from "@/components/editor/TiptapEditor";
 import Toolbar from "@/components/editor/Toolbar";
 import { AppIcon } from "@/components/ui/AppLogo";
+import VersionHistoryDrawer from "@/components/editor/VersionHistoryDrawer";
+import AIPanel from "@/components/editor/AIPanel";
 
 interface DocumentDetail {
   id: string;
@@ -22,7 +27,7 @@ interface DocumentDetail {
 export default function DocumentPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { addToast, saveStatus } = useEditorStore();
+  const { addToast, saveStatus, setDocId, setHistoryOpen, isHistoryOpen } = useEditorStore();
   const editorRef = useRef<TiptapEditorRef>(null);
 
   const [document, setDocument] = useState<DocumentDetail | null>(null);
@@ -34,6 +39,10 @@ export default function DocumentPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
 
+  // ── AI Panel state ───────────────────────────────────────────────────────────
+  const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
+  const { selectedText } = useEditorSelection(editorInstance);
+
   const { scheduleSave, forceSave } = useAutoSave({ documentId: id });
 
   // ── Load document on mount ───────────────────────────────────────────────────
@@ -43,6 +52,7 @@ export default function DocumentPage() {
       .get(`/api/documents/${id}`)
       .then(({ data }) => {
         setDocument(data);
+        setDocId(id);
         setTitle(data.title || "Untitled");
         setWordCount(data.word_count || 0);
         setEditorContent(
@@ -92,6 +102,22 @@ export default function DocumentPage() {
       addToast("Failed to save title.", "error");
     }
   };
+
+  const handleRestoreVersion = (content: unknown) => {
+    const editor = editorRef.current?.editor;
+    if (!editor) return;
+    editor.commands.setContent(content as import("@tiptap/core").Content);
+  };
+
+  // Replace the current selection in the editor with AI-enhanced text
+  const handleReplaceSelection = useCallback(
+    (text: string) => {
+      const editor = editorRef.current?.editor;
+      if (!editor) return;
+      editor.chain().focus().insertContent(text).run();
+    },
+    []
+  );
 
   // ── PDF export: direct download with document name ───────────────────────────
   const handleExportPDF = async () => {
@@ -226,6 +252,7 @@ export default function DocumentPage() {
               <span className="text-xs" style={{ color: "var(--color-error)" }}>Error</span>
             </>
           )}
+          <VersionHistoryDrawer onRestoreVersion={handleRestoreVersion} />
         </div>
 
         {/* Divider */}
@@ -258,6 +285,8 @@ export default function DocumentPage() {
         saveStatus={saveStatus}
         onExportPDF={handleExportPDF}
         isExporting={isExporting}
+        isHistoryOpen={isHistoryOpen}
+        onToggleHistory={() => setHistoryOpen(!isHistoryOpen)}
       />
 
       {/* ── Editor ──────────────────────────────────────────────────────────────── */}
@@ -273,7 +302,50 @@ export default function DocumentPage() {
             onEditorReady={(editor) => setEditorInstance(editor)}
           />
         )}
+
+        {/* ── AI Bubble Menu — appears on text selection ──────────────────────── */}
+        {editorInstance && (
+          <BubbleMenu
+            editor={editorInstance}
+            tippyOptions={{ duration: 150, placement: "top" }}
+            shouldShow={({ state }) => {
+              const { from, to } = state.selection;
+              return from !== to; // only show when text is selected
+            }}
+          >
+            <button
+              onClick={() => setIsAIPanelOpen(true)}
+              aria-label="Open AI Enhance panel"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.35rem",
+                padding: "0.35rem 0.75rem",
+                borderRadius: "9999px",
+                background: "linear-gradient(135deg, var(--color-cyan), var(--color-mint))",
+                color: "#0a0f1a",
+                fontWeight: 700,
+                fontSize: "0.78rem",
+                border: "none",
+                cursor: "pointer",
+                boxShadow: "0 4px 20px rgba(6,182,212,0.45)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              <Sparkles size={13} aria-hidden="true" />
+              AI Enhance
+            </button>
+          </BubbleMenu>
+        )}
       </div>
+
+      {/* ── AI Panel ────────────────────────────────────────────────────────────── */}
+      <AIPanel
+        isOpen={isAIPanelOpen}
+        onClose={() => setIsAIPanelOpen(false)}
+        selectedText={selectedText}
+        onReplaceSelection={handleReplaceSelection}
+      />
     </div>
   );
 }
