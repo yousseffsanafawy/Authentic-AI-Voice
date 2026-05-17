@@ -39,7 +39,8 @@ export default function VersionHistoryDrawer({
       onRestoreVersion(data.content);
       addToast(`Restored to version ${v.version_number}.`, "success");
       setHistoryOpen(false);
-    } catch {
+    } catch (err) {
+      console.error("Restore failed:", err);
       addToast("Failed to restore version.", "error");
     } finally {
       restoringRef.current = null;

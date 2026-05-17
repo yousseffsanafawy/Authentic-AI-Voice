@@ -68,7 +68,7 @@ async def get_version(
             DocumentVersion.version_number == version_number,
         )
     )
-    version = result.scalar_one_or_none()
+    version = result.scalars().first()
     if not version:
         raise HTTPException(status_code=404, detail="Version not found")
     return {"version_number": version.version_number, "content": version.content}
