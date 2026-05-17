@@ -40,3 +40,5 @@ app.mount("/static", StaticFiles(directory=str(settings.STORAGE_DIR)), name="sta
 @app.get("/health", tags=["health"])
 async def health():
     return {"status": "ok"}
+
+

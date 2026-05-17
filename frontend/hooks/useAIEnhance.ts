@@ -75,6 +75,11 @@ export function useAIEnhance(): UseAIEnhanceReturn {
             }
             try {
               const parsed = JSON.parse(data);
+              if (parsed.error) {
+                setError(parsed.error);
+                setIsStreaming(false);
+                return;
+              }
               if (parsed.text) {
                 setStreamedText((prev) => prev + parsed.text);
               }

@@ -131,7 +131,13 @@ export default function DocumentPage() {
   const handleRestoreVersion = (content: unknown) => {
     const editor = editorRef.current?.editor;
     if (!editor) return;
-    editor.commands.setContent(content as import("@tiptap/core").Content);
+    
+    // Tiptap crashes if you pass an empty object {}
+    const validContent = (content && Object.keys(content).length > 0)
+      ? content
+      : { type: "doc", content: [{ type: "paragraph" }] };
+      
+    editor.commands.setContent(validContent as import("@tiptap/core").Content);
   };
 
   // Replace the current selection in the editor with AI-enhanced text

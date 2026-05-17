@@ -206,6 +206,34 @@ export default function DashboardPage() {
             )}
           </button>
 
+          {/* ── SPRINT 4: Style Settings link ── */}
+          <a
+            href="/settings"
+            style={{
+              fontSize: "0.82rem",
+              color: "var(--color-text-muted)",
+              textDecoration: "none",
+              padding: "0.35rem 0.7rem",
+              borderRadius: "var(--radius-md)",
+              border: "1px solid var(--color-border)",
+              transition: "all 0.15s ease",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.color = "var(--color-text)";
+              (e.currentTarget as HTMLAnchorElement).style.borderColor =
+                "var(--color-border-bright)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.color =
+                "var(--color-text-muted)";
+              (e.currentTarget as HTMLAnchorElement).style.borderColor =
+                "var(--color-border)";
+            }}
+          >
+            ⚙ Style Settings
+          </a>
+
           {/* ── SPRINT 2: User avatar with email initial ── */}
           <div className="flex items-center gap-2">
             <div
