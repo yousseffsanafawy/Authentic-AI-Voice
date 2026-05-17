@@ -1,13 +1,12 @@
 from typing import AsyncGenerator
 import logging
-import google.generativeai as genai
+from openai import AsyncOpenAI
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+import os
 
 from app.config import settings
 from app.models.user import User
-
-genai.configure(api_key=settings.GEMINI_API_KEY)
 
 logger = logging.getLogger(__name__)
 
@@ -69,18 +68,18 @@ READABLE_LABELS = {
 class AIService:
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.model = genai.GenerativeModel(
-            model_name="gemini-2.5-pro",
-            system_instruction=SYSTEM_PROMPT,
-        )
+        # Grab from Pydantic settings loaded from .env
+        api_key = settings.OPENAI_API_KEY or settings.GEMINI_API_KEY
+        base_url = settings.OPENAI_BASE_URL or "https://api.openai.com/v1"
+        self.model_name = settings.OPENAI_MODEL_NAME or "gpt-3.5-turbo"
+        self.client = AsyncOpenAI(api_key=api_key, base_url=base_url)
 
     async def enhance_text_stream(
         self,
-        user_id: str,
+        profile: dict,
         selected_text: str,
         instruction: str,
     ) -> AsyncGenerator[str, None]:
-        profile = await self._get_voice_profile(user_id)
 
         user_message = (
             f"VOICE PROFILE:\n{self._format_profile(profile)}\n\n"
@@ -89,18 +88,23 @@ class AIService:
         )
 
         try:
-            response = await self.model.generate_content_async(
-                user_message, stream=True
+            response = await self.client.chat.completions.create(
+                model=self.model_name,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_message},
+                ],
+                stream=True
             )
             async for chunk in response:
-                if chunk.text:
-                    yield chunk.text
+                if chunk.choices and len(chunk.choices) > 0 and chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
         except Exception as e:
             error_str = str(e)
             if "429" in error_str or "quota" in error_str.lower():
                 raise HTTPException(
                     status_code=429,
-                    detail="Gemini rate limit exceeded. Please wait 60 seconds and try again.",
+                    detail="AI rate limit exceeded. Please wait and try again.",
                 )
             raise HTTPException(status_code=500, detail=f"AI service error: {error_str}")
 

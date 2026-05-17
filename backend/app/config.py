@@ -7,10 +7,14 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     GEMINI_API_KEY: str = ""
+    OPENAI_API_KEY: str = ""
+    OPENAI_BASE_URL: str = ""
+    OPENAI_MODEL_NAME: str = ""
     STORAGE_DIR: Path = Path(__file__).parent.parent / "uploads"
 
     class Config:
         env_file = Path(__file__).parent.parent / ".env"
+        extra = "ignore"
 
 settings = Settings()
 
