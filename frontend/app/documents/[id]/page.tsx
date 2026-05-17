@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Editor } from "@tiptap/react";
-import { BubbleMenu } from "@tiptap/react/menus";
 import { Sparkles } from "lucide-react";
 import api from "@/lib/api";
 import { useEditorStore } from "@/store/editorStore";
@@ -41,6 +40,8 @@ export default function DocumentPage() {
 
   // ── AI Panel state ───────────────────────────────────────────────────────────
   const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
+  // Floating "AI Enhance" bubble button position + visibility
+  const [bubblePos, setBubblePos] = useState<{ top: number; left: number } | null>(null);
   const { selectedText } = useEditorSelection(editorInstance);
 
   const { scheduleSave, forceSave } = useAutoSave({ documentId: id });
@@ -79,6 +80,30 @@ export default function DocumentPage() {
     },
     [scheduleSave, editorInstance]
   );
+
+  // ── Track text selection → show/hide floating "AI Enhance" bubble ────────────
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const sel = window.getSelection();
+      if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+        setBubblePos(null);
+        return;
+      }
+      const range = sel.getRangeAt(0);
+      const rect = range.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) {
+        setBubblePos(null);
+        return;
+      }
+      setBubblePos({
+        top: rect.top + window.scrollY - 44,   // 44px above the selection
+        left: rect.left + window.scrollX + rect.width / 2,
+      });
+    };
+
+    window.document.addEventListener("selectionchange", handleSelectionChange);
+    return () => window.document.removeEventListener("selectionchange", handleSelectionChange);
+  }, []);
 
   // ── Ctrl+S: force save ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -294,7 +319,7 @@ export default function DocumentPage() {
         className="flex-1 overflow-auto"
         style={{ background: "var(--color-surface)" }}
       >
-        {editorContent && Object.keys(editorContent).length > 0 && (
+      {editorContent && Object.keys(editorContent).length > 0 && (
           <TiptapEditor
             ref={editorRef}
             initialContent={editorContent}
@@ -303,39 +328,39 @@ export default function DocumentPage() {
           />
         )}
 
-        {/* ── AI Bubble Menu — appears on text selection ──────────────────────── */}
-        {editorInstance && (
-          <BubbleMenu
-            editor={editorInstance}
-            tippyOptions={{ duration: 150, placement: "top" }}
-            shouldShow={({ state }) => {
-              const { from, to } = state.selection;
-              return from !== to; // only show when text is selected
+        {/* ── AI floating bubble — appears above text selection ─────────────── */}
+        {bubblePos && selectedText && (
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault(); // prevent selection loss
+              setIsAIPanelOpen(true);
+            }}
+            aria-label="Open AI Enhance panel"
+            style={{
+              position: "fixed",
+              top: bubblePos.top,
+              left: bubblePos.left,
+              transform: "translateX(-50%)",
+              zIndex: 40,
+              display: "flex",
+              alignItems: "center",
+              gap: "0.35rem",
+              padding: "0.35rem 0.75rem",
+              borderRadius: "9999px",
+              background: "linear-gradient(135deg, var(--color-cyan), var(--color-mint))",
+              color: "#0a0f1a",
+              fontWeight: 700,
+              fontSize: "0.78rem",
+              border: "none",
+              cursor: "pointer",
+              boxShadow: "0 4px 20px rgba(6,182,212,0.45)",
+              whiteSpace: "nowrap",
+              animation: "fade-in 0.15s ease-out",
             }}
           >
-            <button
-              onClick={() => setIsAIPanelOpen(true)}
-              aria-label="Open AI Enhance panel"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.35rem",
-                padding: "0.35rem 0.75rem",
-                borderRadius: "9999px",
-                background: "linear-gradient(135deg, var(--color-cyan), var(--color-mint))",
-                color: "#0a0f1a",
-                fontWeight: 700,
-                fontSize: "0.78rem",
-                border: "none",
-                cursor: "pointer",
-                boxShadow: "0 4px 20px rgba(6,182,212,0.45)",
-                whiteSpace: "nowrap",
-              }}
-            >
-              <Sparkles size={13} aria-hidden="true" />
-              AI Enhance
-            </button>
-          </BubbleMenu>
+            <Sparkles size={13} aria-hidden="true" />
+            AI Enhance
+          </button>
         )}
       </div>
 

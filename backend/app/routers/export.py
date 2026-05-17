@@ -18,8 +18,7 @@ from app.models.user import User
 from app.schemas.voice_profile import ExportLaTeXRequest
 from app.services.latex_service import LaTeXService
 
-router = APIRouter(prefix="/api/export", tags=["export"])
-
+router = APIRouter(tags=["export"])
 
 class ExportRequest(BaseModel):
     # Accept both field names — frontend may send either
