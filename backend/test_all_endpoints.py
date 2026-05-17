@@ -293,22 +293,22 @@ if SAMPLE_ID:
 section("9. AI Enhance")
 
 # No token → 401
-r = requests.post(f"{BASE}/api/enhance",
+r = requests.post(f"{BASE}/api/ai/enhance",
     json={"selected_text": "Hello", "instruction": "improve"},
     stream=True)
-check("POST /api/enhance no token → 401", r.status_code == 401, f"Got {r.status_code}")
+check("POST /api/ai/enhance no token → 401", r.status_code == 401, f"Got {r.status_code}")
 
 # With token — verify SSE stream starts (don't consume all)
 r = requests.post(
-    f"{BASE}/api/enhance",
+    f"{BASE}/api/ai/enhance",
     json={"selected_text": "The cat sat on the mat.", "instruction": "Make this more vivid."},
     headers=AUTH,
     stream=True,
     timeout=15
 )
-check("POST /api/enhance with token → 200", r.status_code == 200, f"Got {r.status_code}: {r.text[:200] if r.status_code != 200 else ''}")
+check("POST /api/ai/enhance with token → 200", r.status_code == 200, f"Got {r.status_code}: {r.text[:200] if r.status_code != 200 else ''}")
 if r.status_code == 200:
-    check("POST /api/enhance content-type SSE",
+    check("POST /api/ai/enhance content-type SSE",
           "text/event-stream" in r.headers.get("content-type", ""),
           f"Got: {r.headers.get('content-type')}")
 

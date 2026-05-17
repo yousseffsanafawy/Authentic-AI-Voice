@@ -14,24 +14,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router, prefix="", tags=["auth"])
-app.include_router(samples.router,   prefix="/api/samples",   tags=["samples"])
-app.include_router(export.router,    prefix="/api/export",    tags=["export"])
+# ── Routers ────────────────────────────────────────────────────────────────────
+# auth      prefix inside router: /api/auth/*
+app.include_router(auth.router)
 
-# The ones we updated for Sprint 3:
-app.include_router(documents.router, prefix="")      
-app.include_router(versions.router,  prefix="/api")  
-app.include_router(ai.router,        prefix="/api")
+# documents prefix inside router: /api/documents/*
+app.include_router(documents.router)
 
-# Versions needs /api/documents prefix (routes are /{doc_id}/versions/*)
-app.include_router(versions.router, prefix="/api/documents", tags=["versions"])
+# export    no prefix inside router → mount at /api/export
+app.include_router(export.router, prefix="/api/export")
 
-# Samples already has /samples prefix → mount under /api
+# versions  prefix inside router: /documents/* → mount at /api → /api/documents/*
+app.include_router(versions.router, prefix="/api")
+
+# samples   prefix inside router: /samples/* → mount at /api → /api/samples/*
 app.include_router(samples.router, prefix="/api")
 
-# AI already has no prefix on the route itself → mount under /api
-app.include_router(ai.router, prefix="/api", tags=["ai"])
+# ai        prefix inside router: /ai/* → mount at /api → /api/ai/*
+app.include_router(ai.router, prefix="/api")
 
+# Static file serving (PDF/LaTeX exports)
 app.mount("/static", StaticFiles(directory=str(settings.STORAGE_DIR)), name="static")
 
 

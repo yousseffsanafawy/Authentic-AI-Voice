@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { Editor } from "@tiptap/react";
+import { useEditorStore } from "@/store/editorStore";
 
 interface ToolbarProps {
   editor: Editor | null;
@@ -70,6 +72,16 @@ export default function Toolbar({
   isHistoryOpen = false,
   onToggleHistory,
 }: ToolbarProps) {
+  const { saveSnapshot, docId } = useEditorStore();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveVersion = async () => {
+    if (isSaving || !docId) return;
+    setIsSaving(true);
+    await saveSnapshot();
+    setIsSaving(false);
+  };
+
   if (!editor) return null;
 
   const insertTable = () => {
@@ -226,6 +238,34 @@ export default function Toolbar({
             <>⬇ PDF</>
           )}
         </button>
+        {/* Save Version */}
+        <button
+          onClick={handleSaveVersion}
+          disabled={isSaving || !docId}
+          title="Save a version snapshot now"
+          aria-label="Save version"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold
+            transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            background: "var(--color-surface-2)",
+            border: "1px solid var(--color-border-bright)",
+            color: "var(--color-mint)",
+          }}
+          onMouseEnter={(e) => {
+            if (!isSaving && docId)
+              (e.currentTarget as HTMLButtonElement).style.background = "var(--color-surface-3)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.background = "var(--color-surface-2)";
+          }}
+        >
+          {isSaving ? (
+            <><span className="animate-spin inline-block">⟳</span> Saving…</>
+          ) : (
+            <>💾 Save Version</>
+          )}
+        </button>
+
         {/* Version History toggle */}
         {onToggleHistory && (
           <button
