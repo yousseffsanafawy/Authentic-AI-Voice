@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Editor } from "@tiptap/react";
 import { useEditorStore } from "@/store/editorStore";
+import { FileDown } from "lucide-react";
 
 interface ToolbarProps {
   editor: Editor | null;
@@ -12,6 +13,7 @@ interface ToolbarProps {
   isExporting?: boolean;
   isHistoryOpen?: boolean;
   onToggleHistory?: () => void;
+  onExport?: () => void;
 }
 
 interface ToolbarButtonProps {
@@ -71,6 +73,7 @@ export default function Toolbar({
   isExporting = false,
   isHistoryOpen = false,
   onToggleHistory,
+  onExport,
 }: ToolbarProps) {
   const { saveSnapshot, docId } = useEditorStore();
   const [isSaving, setIsSaving] = useState(false);
@@ -216,6 +219,18 @@ export default function Toolbar({
             {saveStatusConfig.label}
           </span>
         )}
+
+        {/* Export Modal */}
+        <button
+          onClick={onExport}
+          className="btn-ghost"
+          title="Export document (Ctrl+Shift+E)"
+          aria-label="Export document"
+          style={{ display:'flex', alignItems:'center', gap:'0.3rem', fontSize:'0.8rem' }}
+        >
+          <FileDown size={15} />
+          Export
+        </button>
 
         {/* Export PDF */}
         <button
