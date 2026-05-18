@@ -1,6 +1,4 @@
 import os
-import uuid
-import aiofiles
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import Response
@@ -8,7 +6,6 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
 from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.document import Document
@@ -199,7 +196,7 @@ async def export_pdf(
 
 @router.post("/latex")
 async def export_latex(
-    body: ExportLaTeXRequest, 
+    body: ExportLaTeXRequest,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -207,17 +204,16 @@ async def export_latex(
     latex_str = await LaTeXService(db).generate_latex(
         body.document_id, user.id, body.options
     )
+    doc = await _get_owned_doc(body.document_id, user.id, db)
+    safe_title = "".join(
+        c for c in (doc.title or "document") if c.isalnum() or c in " _-"
+    ).strip() or "document"
 
-    filename = f"{body.document_id}_{uuid.uuid4().hex[:6]}.tex"
-    file_path = settings.STORAGE_DIR / "exports" / filename
-    
-    file_path.parent.mkdir(parents=True, exist_ok=True)
-
-    async with aiofiles.open(file_path, "w", encoding="utf-8") as f:
-        await f.write(latex_str)
-
-    return {
-        "latex_content": latex_str,
-        "filename": filename,
-        "download_url": f"http://localhost:8000/static/exports/{filename}",
-    }
+    return Response(
+        content=latex_str.encode("utf-8"),
+        media_type="text/plain",
+        headers={
+            "Content-Disposition": f'attachment; filename="{safe_title}.tex"',
+            "Content-Length": str(len(latex_str.encode("utf-8"))),
+        },
+    )

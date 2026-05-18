@@ -13,6 +13,7 @@ import Toolbar from "@/components/editor/Toolbar";
 import { AppIcon } from "@/components/ui/AppLogo";
 import VersionHistoryDrawer from "@/components/editor/VersionHistoryDrawer";
 import AIPanel from "@/components/editor/AIPanel";
+import ExportDialog from "@/components/export/ExportDialog";
 
 interface DocumentDetail {
   id: string;
@@ -40,6 +41,7 @@ export default function DocumentPage() {
 
   // ── AI Panel state ───────────────────────────────────────────────────────────
   const [isAIPanelOpen, setIsAIPanelOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   // Floating "AI Enhance" bubble button position + visibility
   const [bubblePos, setBubblePos] = useState<{ top: number; left: number } | null>(null);
   const { selectedText } = useEditorSelection(editorInstance);
@@ -116,6 +118,18 @@ export default function DocumentPage() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [forceSave, editorContent, editorText, wordCount]);
+
+  // ── Ctrl+Shift+E: export dialog ───────────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
+        e.preventDefault();
+        setIsExportOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   // ── Title save on blur ───────────────────────────────────────────────────────
   const handleTitleBlur = async () => {
@@ -318,6 +332,7 @@ export default function DocumentPage() {
         isExporting={isExporting}
         isHistoryOpen={isHistoryOpen}
         onToggleHistory={() => setHistoryOpen(!isHistoryOpen)}
+        onExport={() => setIsExportOpen(true)}
       />
 
       {/* ── Editor ──────────────────────────────────────────────────────────────── */}
@@ -376,6 +391,13 @@ export default function DocumentPage() {
         onClose={() => setIsAIPanelOpen(false)}
         selectedText={selectedText}
         onReplaceSelection={handleReplaceSelection}
+      />
+
+      {/* ── Export Dialog ───────────────────────────────────────────────────────── */}
+      <ExportDialog
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        documentId={id}
       />
     </div>
   );

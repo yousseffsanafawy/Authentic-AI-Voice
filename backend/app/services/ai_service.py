@@ -1,13 +1,11 @@
 from typing import AsyncGenerator
 import logging
-import google.generativeai as genai
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from openai import AsyncOpenAI
 
 from app.config import settings
 from app.models.user import User
-
-genai.configure(api_key=settings.GEMINI_API_KEY)
 
 logger = logging.getLogger(__name__)
 
@@ -69,19 +67,26 @@ READABLE_LABELS = {
 class AIService:
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.model = genai.GenerativeModel(
-            model_name="gemini-2.5-pro",
-            system_instruction=SYSTEM_PROMPT,
+        self.client = AsyncOpenAI(
+            api_key=settings.openai_api_key,
+            base_url=settings.openai_base_url,
         )
+        self.model_name = settings.openai_model_name
+
+    async def get_voice_profile(self, user_id: str) -> dict:
+        user = await self.db.get(User, user_id)
+        if user and user.voice_profile:
+            logger.info("Using real voice profile for user %s", user_id)
+            return user.voice_profile
+        logger.info("Using DEFAULT voice profile for user %s", user_id)
+        return DEFAULT_PROFILE
 
     async def enhance_text_stream(
         self,
-        user_id: str,
+        profile: dict,
         selected_text: str,
         instruction: str,
     ) -> AsyncGenerator[str, None]:
-        profile = await self._get_voice_profile(user_id)
-
         user_message = (
             f"VOICE PROFILE:\n{self._format_profile(profile)}\n\n"
             f"ORIGINAL TEXT:\n{selected_text}\n\n"
@@ -89,28 +94,25 @@ class AIService:
         )
 
         try:
-            response = await self.model.generate_content_async(
-                user_message, stream=True
+            response = await self.client.chat.completions.create(
+                model=self.model_name,
+                messages=[
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_message}
+                ],
+                stream=True
             )
             async for chunk in response:
-                if chunk.text:
-                    yield chunk.text
+                if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
         except Exception as e:
             error_str = str(e)
             if "429" in error_str or "quota" in error_str.lower():
                 raise HTTPException(
                     status_code=429,
-                    detail="Gemini rate limit exceeded. Please wait 60 seconds and try again.",
+                    detail="AI rate limit exceeded. Please wait and try again.",
                 )
             raise HTTPException(status_code=500, detail=f"AI service error: {error_str}")
-
-    async def _get_voice_profile(self, user_id: str) -> dict:
-        user = await self.db.get(User, user_id)
-        if user and user.voice_profile:
-            logger.info("Using real voice profile for user %s", user_id)
-            return user.voice_profile
-        logger.info("Using DEFAULT voice profile for user %s", user_id)
-        return DEFAULT_PROFILE
 
     def _format_profile(self, profile: dict) -> str:
         lines = []

@@ -46,11 +46,12 @@ async def enhance_text(
     _check_rate_limit(user.id)   # raises 429 before touching Gemini
 
     service = AIService(db)
+    profile = await service.get_voice_profile(user.id)
 
     async def event_stream():
         try:
             async for chunk in service.enhance_text_stream(
-                user_id=user.id,
+                profile=profile,
                 selected_text=body.selected_text,
                 instruction=body.instruction,
             ):

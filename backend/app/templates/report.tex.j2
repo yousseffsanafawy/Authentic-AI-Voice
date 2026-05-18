@@ -1,29 +1,25 @@
 \documentclass[{{ font_size }},{{ paper_size }}]{report}
-
 \usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,graphicx,amsmath}
+\usepackage{listings,xcolor}
 \usepackage{geometry}
-\usepackage{hyperref}
-\usepackage{graphicx}
-\usepackage{fancyhdr}
-\usepackage{listings}
 \usepackage[normalem]{ulem}
-\usepackage{titlesec}
-
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
 \geometry{margin=1in}
-
 \pagestyle{fancy}
 \fancyhf{}
-\rhead{\thepage}
-\lhead{ {{- title -}} }
-
+\rhead{ {{- title -}} }
+\lhead{Authentic AI Voice}
+\cfoot{\thepage}
+\hypersetup{colorlinks=true, linkcolor=blue, urlcolor=cyan}
+\lstset{basicstyle=\ttfamily\footnotesize, breaklines=true, frame=single, numbers=left}
 \title{ {{- title -}} }
 \date{\today}
-
 \begin{document}
 \maketitle
-
 {% if include_toc %}\tableofcontents\newpage{% endif %}
-
 {{ body }}
-
 \end{document}

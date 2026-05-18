@@ -1,5 +1,6 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
+from typing import Optional
 
 class Settings(BaseSettings):
     DATABASE_URL: str
@@ -9,8 +10,16 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     STORAGE_DIR: Path = Path(__file__).parent.parent / "uploads"
 
-    class Config:
-        env_file = Path(__file__).parent.parent / ".env"
+    # Add the missing Groq/OpenAI variables here
+    openai_api_key: Optional[str] = None
+    openai_base_url: Optional[str] = None
+    openai_model_name: Optional[str] = None
+
+    # Modern Pydantic v2 config
+    model_config = SettingsConfigDict(
+        env_file=str(Path(__file__).parent.parent / ".env"), 
+        extra="ignore" # This stops the app from crashing if you add random .env variables later
+    )
 
 settings = Settings()
 
