@@ -60,7 +60,17 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
   );
 }
 
-function DocumentCard({ doc, onClick }: { doc: DocumentOut; onClick: () => void }) {
+interface DocumentCardProps {
+  doc: DocumentOut;
+  onClick: () => void;
+  onDelete: () => void;
+  onConfirm: () => void;
+  onCancelDelete: () => void;
+  isDeleting: boolean;
+  showConfirm: boolean;
+}
+
+function DocumentCard({ doc, onClick, onDelete, onConfirm, onCancelDelete, isDeleting, showConfirm }: DocumentCardProps) {
   const accentColors = [
     { from: "var(--color-cyan)", to: "var(--color-mint)" },
     { from: "var(--color-mint)", to: "var(--color-purple)" },
@@ -71,16 +81,46 @@ function DocumentCard({ doc, onClick }: { doc: DocumentOut; onClick: () => void 
   return (
     <div
       onClick={onClick}
-      className="group p-5 rounded-2xl cursor-pointer card-hover animate-fade-up"
+      className="group p-5 rounded-2xl cursor-pointer card-hover animate-fade-up relative overflow-hidden"
       style={{
         background: "var(--color-surface)",
         border: "1px solid var(--color-border)",
+        opacity: isDeleting ? 0.5 : 1,
+        pointerEvents: isDeleting ? 'none' : 'auto'
       }}
     >
       <div
         className="h-0.5 w-12 rounded-full mb-4 transition-all duration-300 group-hover:w-20"
         style={{ background: `linear-gradient(90deg, ${accent.from}, ${accent.to})` }}
       />
+      
+      {/* Delete Controls */}
+      <div className="absolute top-4 right-4 z-10">
+        {showConfirm ? (
+          <div style={{ display: 'flex', gap: '0.25rem', background: 'var(--color-bg-deep)', padding: '2px 8px', borderRadius: '6px', border: '1px solid var(--color-border)' }}>
+            <button 
+              onClick={e => { e.stopPropagation(); onConfirm(); }}
+              style={{ color: 'var(--color-error)', fontSize: '0.75rem', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+              ✓ Delete
+            </button>
+            <button 
+              onClick={e => { e.stopPropagation(); onCancelDelete(); }}
+              style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem', background: 'none', border: 'none', cursor: 'pointer' }}>
+              ✗
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={e => { e.stopPropagation(); onDelete(); }}
+            className="opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ color: 'var(--color-text-muted)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', padding: '0 4px' }}
+            title="Delete document"
+          >
+            ×
+          </button>
+        )}
+      </div>
+
       <div className="flex items-start gap-3">
         <div
           className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -110,7 +150,7 @@ function DocumentCard({ doc, onClick }: { doc: DocumentOut; onClick: () => void 
           </p>
         </div>
         <span
-          className="text-lg opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-0.5"
+          className="text-lg opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-0.5 self-center"
           style={{ color: "var(--color-mint)" }}
         >
           →
@@ -124,7 +164,10 @@ export default function DashboardPage() {
   const [documents, setDocuments] = useState<DocumentOut[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
-  // ── SPRINT 2: Auth state ──────────────────────────────────────────────────
+  const [search, setSearch] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const router = useRouter();
   const { addToast } = useEditorStore();
@@ -144,15 +187,13 @@ export default function DashboardPage() {
     fetchDocuments();
   }, [fetchDocuments]);
 
-  // ── SPRINT 2: Fetch current user for header avatar ────────────────────────
   useEffect(() => {
     api
       .get("/api/auth/me")
       .then(({ data }) => setUserEmail(data.email))
-      .catch(() => { }); // fail silently — 401 interceptor handles redirect
+      .catch(() => { });
   }, []);
 
-  // ── SPRINT 2: Logout handler ──────────────────────────────────────────────
   const handleLogout = () => {
     localStorage.removeItem("auth_token");
     document.cookie = "auth_token=; path=/; max-age=0";
@@ -170,13 +211,29 @@ export default function DashboardPage() {
     }
   };
 
-  // Derive avatar initial from email
+  const handleDelete = async (docId: string) => {
+    setDeletingId(docId);
+    try {
+      await api.delete(`/api/documents/${docId}`);
+      setDocuments(prev => prev.filter(d => d.id !== docId));
+      addToast("Document deleted.", "success");
+    } catch {
+      addToast("Failed to delete document.", "error");
+    } finally {
+      setDeletingId(null);
+      setConfirmId(null);
+    }
+  };
+
+  const filtered = documents.filter(d =>
+    (d.title || "Untitled").toLowerCase().includes(search.toLowerCase())
+  );
+
   const initial = userEmail ? userEmail[0].toUpperCase() : "?";
 
   return (
     <div className="min-h-screen" style={{ background: "var(--color-bg-deep)" }}>
 
-      {/* ── Header ────────────────────────────────────────────────────────────── */}
       <header
         className="sticky top-0 z-20 px-6 py-4 flex items-center justify-between"
         style={{
@@ -206,7 +263,6 @@ export default function DashboardPage() {
             )}
           </button>
 
-          {/* ── SPRINT 4: Style Settings link ── */}
           <a
             href="/settings"
             style={{
@@ -234,7 +290,6 @@ export default function DashboardPage() {
             ⚙ Style Settings
           </a>
 
-          {/* ── SPRINT 2: User avatar with email initial ── */}
           <div className="flex items-center gap-2">
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
@@ -246,7 +301,6 @@ export default function DashboardPage() {
             >
               {initial}
             </div>
-            {/* ── SPRINT 2: Logout button ── */}
             <button
               onClick={handleLogout}
               className="btn-ghost text-xs"
@@ -258,9 +312,8 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* ── Main ──────────────────────────────────────────────────────────────── */}
       <main className="max-w-5xl mx-auto px-6 py-10">
-        <div className="flex items-end justify-between mb-8 animate-fade-in">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 animate-fade-in gap-4">
           <div>
             <h1
               className="text-2xl font-bold text-white mb-1"
@@ -281,7 +334,7 @@ export default function DashboardPage() {
           </div>
           {!loading && documents.length > 0 && (
             <div
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium self-start sm:self-auto"
               style={{
                 background: "rgba(52,211,153,0.1)",
                 color: "var(--color-mint)",
@@ -293,6 +346,25 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {!loading && documents.length > 0 && (
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search documents…"
+            style={{
+              width: '100%', maxWidth: '380px',
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '8px',
+              padding: '0.5rem 1rem',
+              color: 'var(--color-text)',
+              outline: 'none',
+              marginBottom: '1.5rem',
+              fontSize: '0.875rem'
+            }}
+          />
+        )}
+
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => <DocumentCardSkeleton key={i} />)}
@@ -300,16 +372,28 @@ export default function DashboardPage() {
         ) : documents.length === 0 ? (
           <EmptyState onCreate={handleCreate} />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {documents.map((doc, i) => (
-              <div key={doc.id} style={{ animationDelay: `${i * 60}ms` }}>
-                <DocumentCard
-                  doc={doc}
-                  onClick={() => router.push(`/documents/${doc.id}`)}
-                />
-              </div>
-            ))}
-          </div>
+          <>
+            {search && filtered.length === 0 && (
+              <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
+                No results for "{search}"
+              </p>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filtered.map((doc, i) => (
+                <div key={doc.id} style={{ animationDelay: `${i * 60}ms` }}>
+                  <DocumentCard
+                    doc={doc}
+                    onClick={() => router.push(`/documents/${doc.id}`)}
+                    onDelete={() => setConfirmId(doc.id)}
+                    onConfirm={() => handleDelete(doc.id)}
+                    onCancelDelete={() => setConfirmId(null)}
+                    isDeleting={deletingId === doc.id}
+                    showConfirm={confirmId === doc.id}
+                  />
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </main>
     </div>

@@ -105,11 +105,13 @@ export default function Toolbar({
 
   return (
     <div
-      className="sticky top-0 z-30 flex items-center gap-0.5 px-4 py-2 flex-wrap"
+      className="sticky top-0 z-30 flex items-center gap-0.5 px-4 py-2 flex-nowrap overflow-x-auto scrollbar-hide"
       style={{
         background: "rgba(15,17,23,0.9)",
         backdropFilter: "blur(20px)",
         borderBottom: "1px solid var(--color-border)",
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none'
       }}
     >
       {/* Group 1: Text format */}
