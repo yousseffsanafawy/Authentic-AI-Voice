@@ -29,7 +29,7 @@ function timeAgo(dateStr: string): string {
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, ease: "easeOut" }}
@@ -37,36 +37,36 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
     >
       <div className="relative w-40 h-40 mb-10 flex items-center justify-center">
         {/* Deep, high-opacity glassy rings */}
-        <div className="absolute inset-0 rounded-full blur-[40px] opacity-60" 
-             style={{ background: 'var(--color-mint)' }} />
-        <div className="absolute inset-4 rounded-full border opacity-50 animate-[spin_12s_linear_infinite]" 
-             style={{ borderColor: 'var(--color-purple)' }} />
-        <div className="absolute inset-10 rounded-full border opacity-40 animate-[spin_8s_linear_infinite_reverse]" 
-             style={{ borderColor: 'var(--color-cyan)' }} />
+        <div className="absolute inset-0 rounded-full blur-[40px] opacity-60"
+          style={{ background: 'var(--color-mint)' }} />
+        <div className="absolute inset-4 rounded-full border opacity-50 animate-[spin_12s_linear_infinite]"
+          style={{ borderColor: 'var(--color-purple)' }} />
+        <div className="absolute inset-10 rounded-full border opacity-40 animate-[spin_8s_linear_infinite_reverse]"
+          style={{ borderColor: 'var(--color-cyan)' }} />
         <FileCode2 className="w-12 h-12 relative z-10" style={{ color: 'var(--color-mint)' }} />
       </div>
       <h3 className="text-3xl font-bold mb-3 tracking-widest text-transparent bg-clip-text"
-          style={{ backgroundImage: 'linear-gradient(135deg, var(--color-mint), var(--color-purple))', fontFamily: 'var(--font-display)' }}>
+        style={{ backgroundImage: 'linear-gradient(135deg, var(--color-mint), var(--color-purple))', fontFamily: 'var(--font-display)' }}>
         AWAITING INPUTS
       </h3>
       <p className="text-sm mb-10 max-w-md text-center leading-relaxed" style={{ color: 'var(--color-text-muted)' }}>
         The neural core is empty. Initialize a new document to begin deep stylistic analysis and synthesis.
       </p>
-      
-      <motion.button 
+
+      <motion.button
         onClick={onCreate}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        animate={{ 
+        animate={{
           boxShadow: [
-            "0px 0px 0px rgba(52,211,153,0)", 
-            "0px 0px 30px rgba(52,211,153,0.5)", 
+            "0px 0px 0px rgba(52,211,153,0)",
+            "0px 0px 30px rgba(52,211,153,0.5)",
             "0px 0px 0px rgba(52,211,153,0)"
-          ] 
+          ]
         }}
         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         className="flex items-center gap-3 px-8 py-4 rounded-[2rem] font-semibold tracking-widest uppercase text-sm border transition-all"
-        style={{ 
+        style={{
           background: 'linear-gradient(135deg, rgba(52,211,153,0.1), rgba(139,92,246,0.1))',
           backdropFilter: 'blur(10px)',
           borderColor: 'var(--color-mint)',
@@ -119,29 +119,29 @@ function DocumentCard({ doc, onClick, onDelete, onConfirm, onCancelDelete, isDel
       }}
     >
       {/* Intense Glowing Hover Border */}
-      <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" 
-           style={{ 
-             boxShadow: `inset 0 0 40px ${accent.from}15, inset 0 0 0 1px ${accent.from}80` 
-           }} />
+      <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        style={{
+          boxShadow: `inset 0 0 40px ${accent.from}15, inset 0 0 0 1px ${accent.from}80`
+        }} />
 
       {/* Dynamic Top Gradient Bar */}
-      <div className="absolute top-0 left-0 h-1.5 w-12 rounded-r-full transition-all duration-700 ease-out group-hover:w-full opacity-70 group-hover:opacity-100" 
-           style={{ background: `linear-gradient(90deg, ${accent.from}, ${accent.to})` }} />
-      
+      <div className="absolute top-0 left-0 h-1.5 w-12 rounded-r-full transition-all duration-700 ease-out group-hover:w-full opacity-70 group-hover:opacity-100"
+        style={{ background: `linear-gradient(90deg, ${accent.from}, ${accent.to})` }} />
+
       {/* Delete Controls - Glassy & High Contrast */}
       <div className="absolute top-5 right-5 z-20">
         {showConfirm ? (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border"
-            style={{ 
-              background: 'rgba(244, 63, 94, 0.1)', 
+            style={{
+              background: 'rgba(244, 63, 94, 0.1)',
               backdropFilter: 'blur(20px)',
               borderColor: 'rgba(244, 63, 94, 0.4)'
             }}
           >
-            <button 
+            <button
               onClick={e => { e.stopPropagation(); onConfirm(); }}
               className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider transition-colors hover:text-white"
               style={{ color: 'var(--color-error)' }}
@@ -149,7 +149,7 @@ function DocumentCard({ doc, onClick, onDelete, onConfirm, onCancelDelete, isDel
               <Check size={14} /> Purge
             </button>
             <div className="w-px h-4 bg-white/20 mx-1" />
-            <button 
+            <button
               onClick={e => { e.stopPropagation(); onCancelDelete(); }}
               className="px-1 transition-colors hover:text-white"
               style={{ color: 'var(--color-text-muted)' }}
@@ -173,15 +173,15 @@ function DocumentCard({ doc, onClick, onDelete, onConfirm, onCancelDelete, isDel
         <div className="flex items-start gap-4 mb-6 mt-2">
           {/* Deep Glass Icon Container */}
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border relative overflow-hidden"
-               style={{
-                 background: `linear-gradient(135deg, ${accent.from}15, ${accent.to}15)`,
-                 borderColor: `${accent.from}30`,
-                 boxShadow: `0 8px 24px ${accent.from}20, inset 0 0 12px rgba(255,255,255,0.1)`
-               }}>
+            style={{
+              background: `linear-gradient(135deg, ${accent.from}15, ${accent.to}15)`,
+              borderColor: `${accent.from}30`,
+              boxShadow: `0 8px 24px ${accent.from}20, inset 0 0 12px rgba(255,255,255,0.1)`
+            }}>
             <div className="absolute inset-0 opacity-40 blur-md" style={{ background: accent.from }} />
             <FileText size={24} className="relative z-10" style={{ color: 'var(--color-text)' }} />
           </div>
-          
+
           <div className="flex-1 min-w-0 pr-8 pt-1">
             <h3 className="font-bold text-lg truncate tracking-wide" style={{ color: 'var(--color-text)' }} title={doc.title}>
               {doc.title || "Untitled"}
@@ -191,21 +191,21 @@ function DocumentCard({ doc, onClick, onDelete, onConfirm, onCancelDelete, isDel
             </p>
           </div>
         </div>
-        
+
         <div className="mt-auto flex items-center justify-between pt-4 border-t border-white/5">
           <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--color-text-muted)' }}>
-            <span className="px-2.5 py-1 rounded-lg font-mono border" 
-                  style={{ 
-                    background: 'rgba(255,255,255,0.03)', 
-                    borderColor: 'var(--color-border)',
-                    color: accent.from
-                  }}>
+            <span className="px-2.5 py-1 rounded-lg font-mono border"
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                borderColor: 'var(--color-border)',
+                color: accent.from
+              }}>
               {doc.word_count.toLocaleString()} tok
             </span>
             <span>{timeAgo(doc.updated_at)}</span>
           </div>
-          <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1" 
-                        style={{ color: accent.from }} />
+          <ChevronRight size={18} className="opacity-0 group-hover:opacity-100 transition-all transform group-hover:translate-x-1"
+            style={{ color: accent.from }} />
         </div>
       </div>
     </motion.div>
@@ -222,7 +222,7 @@ export default function DashboardPage() {
   const [splashVisible, setSplashVisible] = useState(true);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
-  
+
   const router = useRouter();
   const { addToast } = useEditorStore();
 
@@ -308,7 +308,7 @@ export default function DashboardPage() {
 
   return (
     <div className="relative min-h-screen text-white overflow-hidden font-sans" style={{ background: 'var(--color-bg-deep)' }}>
-      
+
       {/* ── IMMERSIVE NEURAL SPLASH SCREEN ── */}
       <AnimatePresence>
         {splashVisible && (
@@ -330,11 +330,11 @@ export default function DashboardPage() {
                 <Sparkles className="w-16 h-16 relative z-10" style={{ color: 'var(--color-mint)' }} />
               </div>
               <h2 className="text-xl md:text-3xl font-light tracking-[0.4em] uppercase text-center"
-                  style={{ color: 'var(--color-text)', fontFamily: 'var(--font-display)', textShadow: '0 0 30px var(--color-mint)' }}>
+                style={{ color: 'var(--color-text)', fontFamily: 'var(--font-display)', textShadow: '0 0 30px var(--color-mint)' }}>
                 Neural Link <span style={{ color: 'var(--color-mint)', fontWeight: 700 }}>Active</span>
               </h2>
               <div className="w-80 h-1 rounded-full overflow-hidden mt-2" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                <motion.div 
+                <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: "100%" }}
                   transition={{ duration: 1.5, ease: "circOut" }}
@@ -349,7 +349,7 @@ export default function DashboardPage() {
 
       {/* ── HIGH-OPACITY DYNAMIC NEURAL MASK ── */}
       {mounted && (
-        <motion.div 
+        <motion.div
           className="pointer-events-none fixed inset-0 z-0 opacity-[0.85]"
           style={{
             backgroundImage: `
@@ -371,13 +371,13 @@ export default function DashboardPage() {
 
       {/* ── ULTRA-GLASS HEADER ── */}
       <header className="sticky top-0 z-40 px-8 py-5 flex items-center justify-between transition-all"
-              style={{
-                background: 'rgba(7, 9, 15, 0.3)',
-                backdropFilter: 'blur(40px)',
-                WebkitBackdropFilter: 'blur(40px)',
-                borderBottom: '1px solid var(--color-border-bright)',
-                boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
-              }}>
+        style={{
+          background: 'rgba(7, 9, 15, 0.3)',
+          backdropFilter: 'blur(40px)',
+          WebkitBackdropFilter: 'blur(40px)',
+          borderBottom: '1px solid var(--color-border-bright)',
+          boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
+        }}>
         <div className="flex items-center gap-3 drop-shadow-[0_0_20px_rgba(52,211,153,0.4)]">
           <AppLogo size="md" />
         </div>
@@ -389,7 +389,7 @@ export default function DashboardPage() {
             onClick={handleCreate}
             disabled={creating}
             className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold tracking-wider uppercase transition-all"
-            style={{ 
+            style={{
               background: 'linear-gradient(135deg, rgba(52,211,153,0.15), rgba(139,92,246,0.15))',
               border: '1px solid var(--color-mint)',
               boxShadow: '0 0 20px rgba(52,211,153,0.2)',
@@ -417,13 +417,13 @@ export default function DashboardPage() {
 
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold border"
-                 style={{ 
-                   background: 'rgba(52,211,153,0.1)',
-                   borderColor: 'var(--color-mint)', 
-                   color: 'var(--color-mint)',
-                   boxShadow: '0 0 20px rgba(52,211,153,0.3), inset 0 0 10px rgba(52,211,153,0.2)',
-                   textShadow: '0 0 10px var(--color-mint)'
-                 }}>
+              style={{
+                background: 'rgba(52,211,153,0.1)',
+                borderColor: 'var(--color-mint)',
+                color: 'var(--color-mint)',
+                boxShadow: '0 0 20px rgba(52,211,153,0.3), inset 0 0 10px rgba(52,211,153,0.2)',
+                textShadow: '0 0 10px var(--color-mint)'
+              }}>
               {initial}
             </div>
             <button
@@ -441,29 +441,29 @@ export default function DashboardPage() {
       {/* ── MAIN CONTENT ── */}
       <main className="relative z-10 max-w-7xl mx-auto px-8 py-16">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-8">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
           >
             <h1 className="text-5xl font-extrabold mb-3 tracking-tight"
-                style={{ 
-                  fontFamily: 'var(--font-display)',
-                  background: 'linear-gradient(135deg, #fff, var(--color-text-muted))',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent'
-                }}>
+              style={{
+                fontFamily: 'var(--font-display)',
+                background: 'linear-gradient(135deg, #fff, var(--color-text-muted))',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>
               Neural Memory
             </h1>
             <p className="font-mono text-sm uppercase tracking-[0.2em] flex items-center gap-3"
-               style={{ color: 'var(--color-mint)' }}>
+              style={{ color: 'var(--color-mint)' }}>
               <span className="w-2.5 h-2.5 rounded-full animate-pulse shadow-[0_0_10px_var(--color-mint)]" style={{ background: 'var(--color-mint)' }} />
               {loading ? "Scanning core..." : `${documents.length} Records Found`}
             </p>
           </motion.div>
 
           {!loading && documents.length > 0 && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
@@ -471,27 +471,27 @@ export default function DashboardPage() {
               style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
             >
               {/* Spinning Light Border (only visible on focus) */}
-              <div 
+              <div
                 className="absolute z-0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 animate-[spin_2s_linear_infinite]"
                 style={{
                   top: '-100%', left: '-100%', width: '300%', height: '300%',
                   background: 'conic-gradient(from 0deg, transparent 70%, var(--color-mint) 80%, var(--color-cyan) 95%, var(--color-purple) 100%)'
                 }}
               />
-              
+
               {/* Static Border (visible when idle) */}
-              <div 
+              <div
                 className="absolute inset-0 z-0 rounded-full opacity-100 group-focus-within:opacity-0 transition-opacity duration-300 pointer-events-none"
                 style={{ border: '1px solid var(--color-border)' }}
               />
 
               {/* Inner Input Container */}
               <div className="relative z-10 w-full h-full rounded-full flex items-center"
-                   style={{ 
-                     background: 'rgba(7, 9, 15, 0.85)',
-                     backdropFilter: 'blur(20px)',
-                     boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.5)'
-                   }}>
+                style={{
+                  background: 'rgba(7, 9, 15, 0.85)',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.5)'
+                }}>
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Search size={20} className="transition-colors group-focus-within:text-cyan-400" style={{ color: 'var(--color-text-muted)' }} />
                 </div>
@@ -511,9 +511,9 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <div key={i} className="h-40 rounded-3xl animate-pulse relative overflow-hidden"
-                   style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border)' }}>
-                 <div className="absolute inset-0 animate-[shimmer_2s_infinite]" 
-                      style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent)' }} />
+                style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--color-border)' }}>
+                <div className="absolute inset-0 animate-[shimmer_2s_infinite]"
+                  style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent)' }} />
               </div>
             ))}
           </div>
@@ -522,7 +522,7 @@ export default function DashboardPage() {
         ) : (
           <>
             {search && filtered.length === 0 && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 className="text-center py-24 font-mono tracking-widest text-lg"
                 style={{ color: 'var(--color-text-muted)' }}
