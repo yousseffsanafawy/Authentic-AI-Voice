@@ -765,7 +765,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 <div align="center">
 
-Built with ❤️ by **Youssef Sanafawy**
+Built with ❤️ 
 
 *Authentic AI Voice — Write more. Sound like you.*
 
