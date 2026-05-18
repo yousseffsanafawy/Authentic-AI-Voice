@@ -467,24 +467,42 @@ export default function DashboardPage() {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3, duration: 0.8 }}
-              className="relative w-full md:w-96 group"
+              className="relative w-full md:w-96 group rounded-full p-[1px] overflow-hidden"
+              style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
             >
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Search size={20} className="transition-colors group-focus-within:text-white" style={{ color: 'var(--color-text-muted)' }} />
-              </div>
-              <input
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search document name..."
-                className="w-full rounded-full py-3.5 pl-12 pr-5 text-sm transition-all focus:outline-none"
-                style={{ 
-                  background: 'rgba(255,255,255,0.03)',
-                  backdropFilter: 'blur(20px)',
-                  border: '1px solid var(--color-border)',
-                  color: 'var(--color-text)',
-                  boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.5)'
+              {/* Spinning Light Border (only visible on focus) */}
+              <div 
+                className="absolute z-0 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 animate-[spin_2s_linear_infinite]"
+                style={{
+                  top: '-100%', left: '-100%', width: '300%', height: '300%',
+                  background: 'conic-gradient(from 0deg, transparent 70%, var(--color-mint) 80%, var(--color-cyan) 95%, var(--color-purple) 100%)'
                 }}
               />
+              
+              {/* Static Border (visible when idle) */}
+              <div 
+                className="absolute inset-0 z-0 rounded-full opacity-100 group-focus-within:opacity-0 transition-opacity duration-300 pointer-events-none"
+                style={{ border: '1px solid var(--color-border)' }}
+              />
+
+              {/* Inner Input Container */}
+              <div className="relative z-10 w-full h-full rounded-full flex items-center"
+                   style={{ 
+                     background: 'rgba(7, 9, 15, 0.85)',
+                     backdropFilter: 'blur(20px)',
+                     boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.5)'
+                   }}>
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Search size={20} className="transition-colors group-focus-within:text-cyan-400" style={{ color: 'var(--color-text-muted)' }} />
+                </div>
+                <input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search document name..."
+                  className="w-full bg-transparent py-3.5 pl-12 pr-5 text-sm focus:outline-none transition-colors group-focus-within:text-white"
+                  style={{ color: 'var(--color-text)' }}
+                />
+              </div>
             </motion.div>
           )}
         </div>
