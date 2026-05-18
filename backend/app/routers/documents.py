@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import Response
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -160,12 +161,21 @@ async def update_document(
     return doc
 
 
-@router.delete("/{doc_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{doc_id}", status_code=204)
 async def delete_document(
     doc_id: str,
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    doc = await _get_owned_doc(doc_id, user.id, db)
+    result = await db.execute(
+        select(Document).where(
+            Document.id == doc_id,
+            Document.user_id == user.id
+        )
+    )
+    doc = result.scalar_one_or_none()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
     await db.delete(doc)
     await db.commit()
+    return Response(status_code=204)

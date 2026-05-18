@@ -3,9 +3,10 @@
 type VoiceProfile = Record<string, number | Record<string, number>>;
 
 interface VoiceProfileCardProps {
-  profile: VoiceProfile | null;
+  voiceProfile: Record<string, any> | null;
   isAnalyzing: boolean;
-  hasSamples: boolean;
+  isLoading?: boolean;
+  hasSamples?: boolean;
 }
 
 interface FeatureConfig {
@@ -49,23 +50,6 @@ function getReadingLabel(value: number): string {
 function formatValue(value: number, pct?: boolean): string {
   if (pct) return (value * 100).toFixed(1);
   return value.toFixed(1);
-}
-
-function SkeletonCard() {
-  return (
-    <div
-      style={{
-        borderRadius: "var(--radius-md)",
-        padding: "1rem",
-        height: "100px",
-        background:
-          "linear-gradient(90deg, var(--color-surface-2) 25%, var(--color-surface-3) 50%, var(--color-surface-2) 75%)",
-        backgroundSize: "200% 100%",
-        animation: "shimmer 1.5s infinite",
-        border: "1px solid var(--color-border)",
-      }}
-    />
-  );
 }
 
 function StatCard({ feature, value }: { feature: FeatureConfig; value: number }) {
@@ -138,7 +122,6 @@ function StatCard({ feature, value }: { feature: FeatureConfig; value: number })
         </span>
       </div>
 
-      {/* Progress bar */}
       <div
         style={{
           height: "4px",
@@ -158,7 +141,6 @@ function StatCard({ feature, value }: { feature: FeatureConfig; value: number })
         />
       </div>
 
-      {/* Qualitative label for reading ease */}
       {feature.key === "flesch_reading_ease" && (
         <p
           style={{
@@ -256,12 +238,30 @@ function PunctuationCard({ data }: { data: Record<string, number> }) {
 }
 
 export default function VoiceProfileCard({
-  profile,
+  voiceProfile,
   isAnalyzing,
+  isLoading,
   hasSamples,
 }: VoiceProfileCardProps) {
-  // State 1 — no samples yet
-  if (!hasSamples && !profile && !isAnalyzing) {
+  if (isLoading) {
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+        {Array.from({ length: 11 }).map((_, i) => (
+          <div key={i} style={{
+            height: '100px',
+            borderRadius: '12px',
+            background: 'var(--color-surface-2)',
+            border: '1px solid var(--color-border)',
+            animation: 'shimmer 1.5s infinite linear',
+            backgroundImage: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%)',
+            backgroundSize: '200% 100%'
+          }} />
+        ))}
+      </div>
+    );
+  }
+
+  if (!hasSamples && !voiceProfile && !isAnalyzing) {
     return (
       <div
         style={{
@@ -289,8 +289,7 @@ export default function VoiceProfileCard({
     );
   }
 
-  // State 2 — analyzing (skeleton)
-  if (isAnalyzing && !profile) {
+  if (isAnalyzing && !voiceProfile) {
     return (
       <div>
         <h3
@@ -304,27 +303,34 @@ export default function VoiceProfileCard({
             marginBottom: "0.75rem",
           }}
         >
-          Your Voice Profile
+          Analyzing Your Style...
         </h3>
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-            gap: "0.75rem",
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            gap: "1rem",
           }}
         >
-          {Array.from({ length: 12 }).map((_, i) => (
-            <SkeletonCard key={i} />
+          {Array.from({ length: 11 }).map((_, i) => (
+            <div key={i} style={{
+              height: '100px',
+              borderRadius: '12px',
+              background: 'var(--color-surface-2)',
+              border: '1px solid var(--color-border)',
+              animation: 'shimmer 1.5s infinite linear',
+              backgroundImage: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.04) 50%, transparent 100%)',
+              backgroundSize: '200% 100%'
+            }} />
           ))}
         </div>
       </div>
     );
   }
 
-  // State 3 — profile ready
-  if (!profile) return null;
+  if (!voiceProfile) return null;
 
-  const punctuation = profile["top_punctuation"] as Record<string, number> | undefined;
+  const punctuation = voiceProfile["top_punctuation"] as Record<string, number> | undefined;
 
   return (
     <div>
@@ -351,7 +357,7 @@ export default function VoiceProfileCard({
         }}
       >
         {FEATURE_CONFIG.map((feature) => {
-          const raw = profile[feature.key];
+          const raw = voiceProfile[feature.key];
           if (typeof raw !== "number") return null;
           return <StatCard key={feature.key} feature={feature} value={raw} />;
         })}

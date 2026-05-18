@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useEditorStore } from "@/store/editorStore";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -17,13 +18,29 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Global 401 handler — clear token and redirect to login
+// Global Axios response interceptor
 api.interceptors.response.use(
-  (res) => res,
+  (response) => response,
   (error) => {
-    if (error.response?.status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem("auth_token");
-      window.location.href = "/login";
+    const status = error?.response?.status;
+    const detail = error?.response?.data?.detail ?? "Something went wrong.";
+    if (status === 401) {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("auth_token");
+        window.location.href = "/login";
+      }
+    } else if (status === 429) {
+      useEditorStore.getState().addToast(
+        "Too many requests. Please wait a moment.", "error"
+      );
+    } else if (status === 422) {
+      useEditorStore.getState().addToast(
+        `Validation error: ${detail}`, "error"
+      );
+    } else if (status && status >= 500) {
+      useEditorStore.getState().addToast(
+        "Server error. Please try again.", "error"
+      );
     }
     return Promise.reject(error);
   }

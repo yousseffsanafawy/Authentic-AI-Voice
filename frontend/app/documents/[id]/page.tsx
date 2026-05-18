@@ -131,6 +131,18 @@ export default function DocumentPage() {
     return () => window.removeEventListener('keydown', handler);
   }, []);
 
+  // ── Ctrl+Shift+A: open AI panel ───────────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        setIsAIPanelOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
   // ── Title save on blur ───────────────────────────────────────────────────────
   const handleTitleBlur = async () => {
     const trimmed = title.trim() || "Untitled";
@@ -357,6 +369,7 @@ export default function DocumentPage() {
               setIsAIPanelOpen(true);
             }}
             aria-label="Open AI Enhance panel"
+            title="Open AI Panel (Ctrl+Shift+A)"
             style={{
               position: "fixed",
               top: bubblePos.top,

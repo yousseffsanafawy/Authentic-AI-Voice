@@ -92,7 +92,7 @@ export default function AIPanel({
         aria-label="AI Enhance Panel"
         className="fixed top-0 right-0 bottom-0 z-50 flex flex-col"
         style={{
-          width: "360px",
+          width: "min(360px, 90vw)",
           background: "var(--color-surface)",
           borderLeft: "1px solid var(--color-border)",
           animation: "slide-in-right 0.22s cubic-bezier(0.16,1,0.3,1)",

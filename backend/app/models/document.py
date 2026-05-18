@@ -17,7 +17,7 @@ class Document(Base):
     current_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     has_footnotes: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     has_tables: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    is_archived: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_archived: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, server_default=func.now(), nullable=False)
 

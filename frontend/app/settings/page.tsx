@@ -185,8 +185,9 @@ export default function SettingsPage() {
         {/* Voice profile */}
         <section style={{ animation: "fade-up 0.45s ease-out both" }}>
           <VoiceProfileCard
-            profile={voiceProfile}
+            voiceProfile={voiceProfile}
             isAnalyzing={isAnalyzing}
+            isLoading={isAnalyzing && !voiceProfile}
             hasSamples={samples.length > 0}
           />
         </section>
