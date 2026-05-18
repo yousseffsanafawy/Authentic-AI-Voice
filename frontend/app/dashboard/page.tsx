@@ -221,6 +221,7 @@ export default function DashboardPage() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [splashVisible, setSplashVisible] = useState(true);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   
   const router = useRouter();
   const { addToast } = useEditorStore();
@@ -242,6 +243,7 @@ export default function DashboardPage() {
   }, [mouseX, mouseY]);
 
   useEffect(() => {
+    setMounted(true);
     const timer = setTimeout(() => setSplashVisible(false), 2000);
     return () => clearTimeout(timer);
   }, []);
@@ -346,24 +348,26 @@ export default function DashboardPage() {
       </AnimatePresence>
 
       {/* ── HIGH-OPACITY DYNAMIC NEURAL MASK ── */}
-      <motion.div 
-        className="pointer-events-none fixed inset-0 z-0 opacity-[0.85]"
-        style={{
-          backgroundImage: `
-            url("data:image/svg+xml,%3Csvg width='240' height='240' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 60 L180 30 L210 150 L120 220 Z M40 60 L120 120 L180 30 M120 120 L210 150 M120 120 L120 220 M40 60 L0 120 M240 120 L210 150 M120 0 L180 30 M120 240 L120 220 M0 0 L40 60 M240 240 L210 150 M240 0 L180 30 M0 240 L120 220 M0 50 L40 60 M240 50 L180 30 M0 180 L120 220 M240 180 L210 150' stroke='rgba(52,211,153,0.18)' stroke-width='1.5' fill='none'/%3E%3Ccircle cx='40' cy='60' r='3' fill='rgba(139,92,246,0.7)'/%3E%3Ccircle cx='180' cy='30' r='3.5' fill='rgba(6,182,212,0.7)'/%3E%3Ccircle cx='210' cy='150' r='2.5' fill='rgba(52,211,153,0.7)'/%3E%3Ccircle cx='120' cy='220' r='3' fill='rgba(139,92,246,0.7)'/%3E%3Ccircle cx='120' cy='120' r='4' fill='rgba(6,182,212,0.9)'/%3E%3C/svg%3E"),
-            url("data:image/svg+xml,%3Csvg width='360' height='360' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 90 L270 45 L315 225 L180 330 Z M60 90 L180 180 L270 45 M180 180 L315 225 M180 180 L180 330 M60 90 L0 180 M360 180 L315 225 M180 0 L270 45 M180 360 L180 330 M0 0 L60 90 M360 360 L315 225 M360 0 L270 45 M0 360 L180 330 M0 75 L60 90 M360 75 L270 45 M0 270 L180 330 M360 270 L315 225' stroke='rgba(139,92,246,0.15)' stroke-width='1' fill='none'/%3E%3Ccircle cx='60' cy='90' r='2' fill='rgba(52,211,153,0.5)'/%3E%3Ccircle cx='270' cy='45' r='3' fill='rgba(139,92,246,0.5)'/%3E%3Ccircle cx='315' cy='225' r='2' fill='rgba(6,182,212,0.5)'/%3E%3Ccircle cx='180' cy='330' r='2' fill='rgba(52,211,153,0.5)'/%3E%3Ccircle cx='180' cy='180' r='3.5' fill='rgba(139,92,246,0.6)'/%3E%3C/svg%3E")
-          `,
-          backgroundSize: '240px 240px, 360px 360px',
-          backgroundPosition: '0 0, 120px 120px',
-          maskImage: maskImage,
-          WebkitMaskImage: maskImage,
-        }}
-      >
-        {/* Deep Glowing Accent Orbs inside the grid */}
-        <div className="absolute top-[10%] left-[20%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" style={{ background: 'var(--color-purple)' }} />
-        <div className="absolute bottom-[10%] right-[10%] w-[600px] h-[600px] rounded-full blur-[150px] opacity-20" style={{ background: 'var(--color-mint)' }} />
-        <div className="absolute top-[40%] right-[40%] w-[400px] h-[400px] rounded-full blur-[100px] opacity-20" style={{ background: 'var(--color-cyan)' }} />
-      </motion.div>
+      {mounted && (
+        <motion.div 
+          className="pointer-events-none fixed inset-0 z-0 opacity-[0.85]"
+          style={{
+            backgroundImage: `
+              url("data:image/svg+xml,%3Csvg width='240' height='240' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 60 L180 30 L210 150 L120 220 Z M40 60 L120 120 L180 30 M120 120 L210 150 M120 120 L120 220 M40 60 L0 120 M240 120 L210 150 M120 0 L180 30 M120 240 L120 220 M0 0 L40 60 M240 240 L210 150 M240 0 L180 30 M0 240 L120 220 M0 50 L40 60 M240 50 L180 30 M0 180 L120 220 M240 180 L210 150' stroke='rgba(52,211,153,0.18)' stroke-width='1.5' fill='none'/%3E%3Ccircle cx='40' cy='60' r='3' fill='rgba(139,92,246,0.7)'/%3E%3Ccircle cx='180' cy='30' r='3.5' fill='rgba(6,182,212,0.7)'/%3E%3Ccircle cx='210' cy='150' r='2.5' fill='rgba(52,211,153,0.7)'/%3E%3Ccircle cx='120' cy='220' r='3' fill='rgba(139,92,246,0.7)'/%3E%3Ccircle cx='120' cy='120' r='4' fill='rgba(6,182,212,0.9)'/%3E%3C/svg%3E"),
+              url("data:image/svg+xml,%3Csvg width='360' height='360' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 90 L270 45 L315 225 L180 330 Z M60 90 L180 180 L270 45 M180 180 L315 225 M180 180 L180 330 M60 90 L0 180 M360 180 L315 225 M180 0 L270 45 M180 360 L180 330 M0 0 L60 90 M360 360 L315 225 M360 0 L270 45 M0 360 L180 330 M0 75 L60 90 M360 75 L270 45 M0 270 L180 330 M360 270 L315 225' stroke='rgba(139,92,246,0.15)' stroke-width='1' fill='none'/%3E%3Ccircle cx='60' cy='90' r='2' fill='rgba(52,211,153,0.5)'/%3E%3Ccircle cx='270' cy='45' r='3' fill='rgba(139,92,246,0.5)'/%3E%3Ccircle cx='315' cy='225' r='2' fill='rgba(6,182,212,0.5)'/%3E%3Ccircle cx='180' cy='330' r='2' fill='rgba(52,211,153,0.5)'/%3E%3Ccircle cx='180' cy='180' r='3.5' fill='rgba(139,92,246,0.6)'/%3E%3C/svg%3E")
+            `,
+            backgroundSize: '240px 240px, 360px 360px',
+            backgroundPosition: '0 0, 120px 120px',
+            maskImage: maskImage,
+            WebkitMaskImage: maskImage,
+          }}
+        >
+          {/* Deep Glowing Accent Orbs inside the grid */}
+          <div className="absolute top-[10%] left-[20%] w-[500px] h-[500px] rounded-full blur-[120px] opacity-30" style={{ background: 'var(--color-purple)' }} />
+          <div className="absolute bottom-[10%] right-[10%] w-[600px] h-[600px] rounded-full blur-[150px] opacity-20" style={{ background: 'var(--color-mint)' }} />
+          <div className="absolute top-[40%] right-[40%] w-[400px] h-[400px] rounded-full blur-[100px] opacity-20" style={{ background: 'var(--color-cyan)' }} />
+        </motion.div>
+      )}
 
       {/* ── ULTRA-GLASS HEADER ── */}
       <header className="sticky top-0 z-40 px-8 py-5 flex items-center justify-between transition-all"
@@ -412,8 +416,14 @@ export default function DashboardPage() {
           <div className="w-px h-8 bg-white/10 mx-2" />
 
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shadow-[0_0_25px_rgba(139,92,246,0.6)]"
-                 style={{ background: 'linear-gradient(135deg, var(--color-mint), var(--color-purple))', color: 'var(--color-bg-deep)' }}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold border"
+                 style={{ 
+                   background: 'rgba(52,211,153,0.1)',
+                   borderColor: 'var(--color-mint)', 
+                   color: 'var(--color-mint)',
+                   boxShadow: '0 0 20px rgba(52,211,153,0.3), inset 0 0 10px rgba(52,211,153,0.2)',
+                   textShadow: '0 0 10px var(--color-mint)'
+                 }}>
               {initial}
             </div>
             <button
@@ -465,7 +475,7 @@ export default function DashboardPage() {
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Query memory banks..."
+                placeholder="Search document name..."
                 className="w-full rounded-full py-3.5 pl-12 pr-5 text-sm transition-all focus:outline-none"
                 style={{ 
                   background: 'rgba(255,255,255,0.03)',
