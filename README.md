@@ -749,7 +749,7 @@ NEXT_PUBLIC_API_URL=https://api.yourdomain.com
 
 ## 🤝 Contributing
 
-1. Fork the repositor
+1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature-name`
 3. Commit your changes following conventional commits: `feat:`, `fix:`, `docs:`, `chore:`
 4. Push to your fork and open a Pull Request
